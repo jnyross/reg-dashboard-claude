@@ -83,7 +83,7 @@ export async function runPipeline(
     const analyzed = await analyzeItems(
       crawledItems,
       apiKey,
-      options.analyzeConcurrency ?? 3,
+      options.analyzeConcurrency ?? 5,
       (completed, total, title) => {
         options.onProgress?.("analyze", `[${completed}/${total}] Analyzed: ${title.slice(0, 60)}`);
       },

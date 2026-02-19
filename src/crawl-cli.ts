@@ -18,7 +18,8 @@ async function main() {
   const databasePath = process.env.DATABASE_PATH ?? undefined;
   const db = openDatabase(databasePath);
   initializeSchema(db);
-  seedSampleData(db);
+  // Skip seed data for clean crawl results
+  // seedSampleData(db);
 
   console.log("Starting crawl pipeline...\n");
 

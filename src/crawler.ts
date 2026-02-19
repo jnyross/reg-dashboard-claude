@@ -150,7 +150,7 @@ function parseRssItems(xml: string, source: RegistrySource): CrawledItem[] {
       fetchedAt: new Date().toISOString(),
     });
 
-    if (items.length >= 10) break;
+    if (items.length >= 5) break;
   }
 
   return items;
