@@ -13,14 +13,17 @@ export type CrawledItem = {
   fetchedAt: string;
 };
 
-const FETCH_TIMEOUT_MS = 15_000;
-const MAX_TEXT_LENGTH = 10_000;
+const FETCH_TIMEOUT_MS = 30_000;
+const MAX_TEXT_LENGTH = 12_000;
 
 /** Strip HTML tags and collapse whitespace */
 function stripHtml(html: string): string {
   return html
     .replace(/<script[\s\S]*?<\/script>/gi, "")
     .replace(/<style[\s\S]*?<\/style>/gi, "")
+    .replace(/<nav[\s\S]*?<\/nav>/gi, "")
+    .replace(/<footer[\s\S]*?<\/footer>/gi, "")
+    .replace(/<header[\s\S]*?<\/header>/gi, "")
     .replace(/<[^>]+>/g, " ")
     .replace(/&nbsp;/g, " ")
     .replace(/&amp;/g, "&")
@@ -28,6 +31,8 @@ function stripHtml(html: string): string {
     .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
+    .replace(/&#x27;/g, "'")
+    .replace(/&#\d+;/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -38,6 +43,27 @@ function extractTitle(html: string): string {
   return match ? stripHtml(match[1]).slice(0, 200) : "";
 }
 
+/** Extract meta description / og:description as fallback content */
+function extractMetaContent(html: string): string {
+  const parts: string[] = [];
+  
+  // og:description
+  const ogDesc = html.match(/<meta[^>]*property=["']og:description["'][^>]*content=["']([^"']+)["']/i)
+    ?? html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:description["']/i);
+  if (ogDesc?.[1]) parts.push(ogDesc[1]);
+  
+  // meta description
+  const metaDesc = html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["']/i)
+    ?? html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*name=["']description["']/i);
+  if (metaDesc?.[1]) parts.push(metaDesc[1]);
+  
+  // og:title
+  const ogTitle = html.match(/<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']+)["']/i);
+  if (ogTitle?.[1]) parts.push(ogTitle[1]);
+
+  return parts.join(" | ");
+}
+
 /** Fetch a URL with timeout, return raw text */
 async function fetchWithTimeout(url: string, timeoutMs = FETCH_TIMEOUT_MS): Promise<string> {
   const controller = new AbortController();
@@ -46,9 +72,11 @@ async function fetchWithTimeout(url: string, timeoutMs = FETCH_TIMEOUT_MS): Prom
   try {
     const response = await fetch(url, {
       signal: controller.signal,
+      redirect: "follow",
       headers: {
-        "User-Agent": "RegDashboard/2.0 (regulatory-monitoring-bot)",
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
         Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
       },
     });
 
@@ -66,7 +94,19 @@ async function fetchWithTimeout(url: string, timeoutMs = FETCH_TIMEOUT_MS): Prom
 async function crawlPage(source: RegistrySource): Promise<CrawledItem[]> {
   const html = await fetchWithTimeout(source.url);
   const title = extractTitle(html) || source.name;
-  const text = stripHtml(html).slice(0, MAX_TEXT_LENGTH);
+  let text = stripHtml(html).slice(0, MAX_TEXT_LENGTH);
+
+  // If main text is too thin, enrich with meta tags and source metadata
+  if (text.length < 200) {
+    const metaContent = extractMetaContent(html);
+    const enrichment = [
+      `Source: ${source.name}`,
+      `Description: ${source.description}`,
+      `Keywords: ${(source.searchKeywords ?? []).join(", ")}`,
+      metaContent ? `Meta: ${metaContent}` : "",
+    ].filter(Boolean).join("\n");
+    text = `${enrichment}\n\n${text}`;
+  }
 
   return [
     {

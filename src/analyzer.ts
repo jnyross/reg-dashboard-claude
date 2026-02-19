@@ -6,7 +6,7 @@
 import { type CrawledItem } from "./crawler";
 
 const MINIMAX_API_URL = "https://api.minimax.io/anthropic/v1/messages";
-const MINIMAX_MODEL = "MiniMax-M1";
+const MINIMAX_MODEL = "MiniMax-M2.5";
 
 export type AnalysisResult = {
   relevant: boolean;
@@ -31,14 +31,22 @@ export type AnalysisResult = {
 const ANALYSIS_PROMPT = `You are a regulatory intelligence analyst specializing in teen online safety laws affecting Meta (Facebook, Instagram, WhatsApp, Threads, Messenger).
 
 Analyze the following crawled text and determine:
-1. Is this relevant to teen (ages 13-18) online regulation that could affect Meta's products?
+1. Is this relevant to teen (ages 13-18) or children's online regulation that could affect Meta's products?
 2. If relevant, extract structured data.
 
-IMPORTANT: Only mark as relevant if the content specifically relates to:
-- Laws, regulations, or enforcement actions about minors/teens/children online
-- Platform safety obligations for users aged 13-18
-- Age verification, parental consent, or children's data protection
-- Social media restrictions for minors
+IMPORTANT: Mark as RELEVANT if the content relates to ANY of these topics (be INCLUSIVE — false positives are better than missing real regulations):
+- Laws, regulations, bills, or enforcement actions about minors/teens/children online
+- Platform safety obligations for users under 18 (including under-13, under-16)
+- Age verification, parental consent, or children's data protection (e.g. COPPA, GDPR Article 8)
+- Social media restrictions or duties of care for minors
+- Data protection regulations that include specific children's provisions (GDPR, LGPD, DPDP, etc.)
+- AI regulation with provisions affecting minors
+- Online safety acts, digital services acts, or content moderation rules
+- Advertising/profiling restrictions for children or teens
+- Government consultations or proposals about children's online safety
+- Even if the text is noisy, partial HTML, or a general overview page — if the SOURCE URL or title suggests it is about child/teen regulation, mark it RELEVANT
+
+NOTE: The crawled text may be noisy HTML with navigation elements, cookie notices, etc. Focus on the core content and the source context (title, URL, source name) to determine relevance.
 
 Respond with ONLY a JSON object (no markdown, no code fences):
 
