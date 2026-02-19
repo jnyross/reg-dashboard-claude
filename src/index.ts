@@ -1,4 +1,4 @@
-import { openDatabase, initializeSchema } from "./db";
+import { openDatabase, initializeSchema, migrateSchema } from "./db";
 import { createApp } from "./app";
 import { seedSampleData } from "./seed";
 
@@ -8,6 +8,7 @@ const DATABASE_PATH = process.env.DATABASE_PATH;
 const databasePath = DATABASE_PATH ?? undefined;
 const db = openDatabase(databasePath);
 initializeSchema(db);
+migrateSchema(db);
 seedSampleData(db);
 
 const app = createApp(db);

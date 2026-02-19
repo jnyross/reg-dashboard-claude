@@ -1,5 +1,8 @@
 import express, { Request, Response } from "express";
+import path from "node:path";
 import DatabaseConstructor from "better-sqlite3";
+import { runPipeline } from "./pipeline";
+import { getLatestCrawlRun } from "./db";
 
 type Stage =
   | "proposed"
@@ -48,6 +51,8 @@ const defaultBriefLimit = 5;
 
 const allowedRatings = new Set(["good", "bad"]);
 
+const allowedAgeBrackets = new Set(["13-15", "16-18", "both"]);
+
 type DbEventRow = {
   id: string;
   title: string;
@@ -55,15 +60,22 @@ type DbEventRow = {
   jurisdiction_state: string | null;
   stage: Stage;
   is_under16_applicable: number;
+  age_bracket: string | null;
   impact_score: number;
   likelihood_score: number;
   confidence_score: number;
   chili_score: number;
   summary: string | null;
+  business_impact: string | null;
+  affected_products: string | null;
+  required_solutions: string | null;
+  competitor_responses: string | null;
+  source_url_link: string | null;
   effective_date: string | null;
   published_date: string | null;
   source_name: string;
   source_url: string;
+  source_reliability_tier: number;
   updated_at: string;
   created_at: string;
   urgency_rank?: number;
@@ -122,6 +134,16 @@ function parseSingleInt(value: unknown, min?: number, max?: number): number | un
   return parsed;
 }
 
+function safeJsonParse(value: string | null): string[] | null {
+  if (!value) return null;
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
 function mapEvent(row: DbEventRow) {
   return {
     id: row.id,
@@ -132,6 +154,7 @@ function mapEvent(row: DbEventRow) {
     },
     stage: row.stage,
     isUnder16Applicable: Boolean(row.is_under16_applicable),
+    ageBracket: row.age_bracket ?? "both",
     scores: {
       impact: row.impact_score,
       likelihood: row.likelihood_score,
@@ -139,38 +162,54 @@ function mapEvent(row: DbEventRow) {
       chili: row.chili_score,
     },
     summary: row.summary,
+    businessImpact: row.business_impact ?? null,
+    affectedProducts: safeJsonParse(row.affected_products),
+    requiredSolutions: safeJsonParse(row.required_solutions),
+    competitorResponses: safeJsonParse(row.competitor_responses),
+    sourceUrlLink: row.source_url_link ?? null,
     effectiveDate: row.effective_date,
     publishedDate: row.published_date,
     source: {
       name: row.source_name,
       url: row.source_url,
+      reliabilityTier: row.source_reliability_tier ?? 3,
     },
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
 }
 
+const eventSelectColumns = `
+  e.id,
+  e.title,
+  e.jurisdiction_country,
+  e.jurisdiction_state,
+  e.stage,
+  e.is_under16_applicable,
+  e.age_bracket,
+  e.impact_score,
+  e.likelihood_score,
+  e.confidence_score,
+  e.chili_score,
+  e.summary,
+  e.business_impact,
+  e.affected_products,
+  e.required_solutions,
+  e.competitor_responses,
+  e.source_url_link,
+  e.effective_date,
+  e.published_date,
+  e.updated_at,
+  e.created_at,
+  s.name AS source_name,
+  s.url AS source_url,
+  COALESCE(s.reliability_tier, 3) AS source_reliability_tier
+`;
+
 function createBriefSelect(sqlLimit: number): string {
   return `
     SELECT
-      e.id,
-      e.title,
-      e.jurisdiction_country,
-      e.jurisdiction_state,
-      e.stage,
-      e.is_under16_applicable,
-      e.chili_score,
-      e.summary,
-      e.source_id,
-      s.name AS source_name,
-      s.url AS source_url,
-      e.updated_at,
-      e.created_at,
-      e.impact_score,
-      e.likelihood_score,
-      e.confidence_score,
-      e.effective_date,
-      e.published_date,
+      ${eventSelectColumns},
       CASE e.stage
         WHEN 'proposed' THEN 9
         WHEN 'introduced' THEN 8
@@ -197,17 +236,32 @@ export function createApp(db: DatabaseConstructor.Database) {
   const app = express();
   app.use(express.json());
 
+  // Serve frontend static files
+  app.use(express.static(path.join(process.cwd(), "web")));
+
   app.get("/api/health", (req: Request, res: Response) => {
+    const lastCrawl = getLatestCrawlRun(db);
     res.json({
       status: "ok",
       timestamp: new Date().toISOString(),
-      version: "v1",
+      version: "v2",
+      lastCrawl: lastCrawl
+        ? {
+            id: lastCrawl.id,
+            status: lastCrawl.status,
+            completedAt: lastCrawl.completedAt,
+            itemsNew: lastCrawl.itemsNew,
+            itemsUpdated: lastCrawl.itemsUpdated,
+          }
+        : null,
     });
   });
 
   app.get("/api/brief", (req: Request, res: Response) => {
     const limit = parsePaging(req.query.limit, defaultBriefLimit, 20);
     const rows = db.prepare(createBriefSelect(limit)).all() as DbEventRow[];
+    const lastCrawl = getLatestCrawlRun(db);
+
     const items = rows.map((row) => ({
       ...mapEvent(row),
       urgencyScore: stageUrgency[row.stage] ?? 0,
@@ -216,6 +270,7 @@ export function createApp(db: DatabaseConstructor.Database) {
 
     res.json({
       generatedAt: new Date().toISOString(),
+      lastCrawledAt: lastCrawl?.completedAt ?? null,
       items,
       total: rows.length,
       limit,
@@ -226,9 +281,14 @@ export function createApp(db: DatabaseConstructor.Database) {
     const jurisdiction = typeof req.query.jurisdiction === "string" ? req.query.jurisdiction.trim() : undefined;
     const stageRaw = typeof req.query.stage === "string" ? req.query.stage : undefined;
     const minRisk = parseSingleInt(req.query.minRisk, 1, 5);
+    const ageBracket = typeof req.query.ageBracket === "string" ? req.query.ageBracket.trim() : undefined;
 
     if (req.query.minRisk !== undefined && minRisk === undefined) {
       return res.status(400).json({ error: "minRisk must be an integer between 1 and 5" });
+    }
+
+    if (ageBracket !== undefined && !allowedAgeBrackets.has(ageBracket)) {
+      return res.status(400).json({ error: "ageBracket must be one of: 13-15, 16-18, both" });
     }
 
     const page = parsePaging(req.query.page, 1);
@@ -259,6 +319,11 @@ export function createApp(db: DatabaseConstructor.Database) {
       params.push(minRisk);
     }
 
+    if (ageBracket) {
+      whereClauses.push("(e.age_bracket = ? OR e.age_bracket = 'both')");
+      params.push(ageBracket);
+    }
+
     const where = whereClauses.length ? `WHERE ${whereClauses.join(" AND ")}` : "";
     const countRow = db.prepare(`SELECT COUNT(*) AS total FROM regulation_events e ${where}`).get(...params) as {
       total: number;
@@ -269,23 +334,7 @@ export function createApp(db: DatabaseConstructor.Database) {
       .prepare(
         `
       SELECT
-        e.id,
-        e.title,
-        e.jurisdiction_country,
-        e.jurisdiction_state,
-        e.stage,
-        e.is_under16_applicable,
-        e.impact_score,
-        e.likelihood_score,
-        e.confidence_score,
-        e.chili_score,
-        e.summary,
-        e.effective_date,
-        e.published_date,
-        e.updated_at,
-        e.created_at,
-        s.name AS source_name,
-        s.url AS source_url
+        ${eventSelectColumns}
       FROM regulation_events e
       JOIN sources s ON s.id = e.source_id
       ${where}
@@ -310,23 +359,7 @@ export function createApp(db: DatabaseConstructor.Database) {
       .prepare(
         `
       SELECT
-        e.id,
-        e.title,
-        e.jurisdiction_country,
-        e.jurisdiction_state,
-        e.stage,
-        e.is_under16_applicable,
-        e.impact_score,
-        e.likelihood_score,
-        e.confidence_score,
-        e.chili_score,
-        e.summary,
-        e.effective_date,
-        e.published_date,
-        e.updated_at,
-        e.created_at,
-        s.name AS source_name,
-        s.url AS source_url
+        ${eventSelectColumns}
       FROM regulation_events e
       JOIN sources s ON s.id = e.source_id
       WHERE e.id = ?
@@ -387,6 +420,64 @@ export function createApp(db: DatabaseConstructor.Database) {
       rating,
       note: note ?? null,
       createdAt,
+    });
+  });
+
+  // POST /api/crawl — trigger a full crawl + analysis run
+  app.post("/api/crawl", async (req: Request, res: Response) => {
+    const apiKey = process.env.MINIMAX_API_KEY;
+    if (!apiKey) {
+      return res.status(500).json({
+        error: "MINIMAX_API_KEY not configured. Set it as an environment variable.",
+      });
+    }
+
+    // Check if a crawl is already running
+    const lastRun = getLatestCrawlRun(db);
+    if (lastRun?.status === "running") {
+      return res.status(409).json({
+        error: "A crawl is already running",
+        runId: lastRun.id,
+        startedAt: lastRun.startedAt,
+      });
+    }
+
+    // Start pipeline asynchronously, return immediately
+    const logs: string[] = [];
+    res.json({
+      status: "started",
+      message: "Crawl pipeline started. Check /api/crawl/status for progress.",
+    });
+
+    // Run in background
+    runPipeline(db, apiKey, {
+      onProgress: (stage, message) => {
+        logs.push(`[${stage}] ${message}`);
+        console.log(`[crawl] ${message}`);
+      },
+    }).then((result) => {
+      console.log(`[crawl] Completed: ${result.itemsNew} new, ${result.itemsUpdated} updated`);
+    }).catch((err) => {
+      console.error("[crawl] Pipeline error:", err);
+    });
+  });
+
+  // GET /api/crawl/status — check crawl status
+  app.get("/api/crawl/status", (req: Request, res: Response) => {
+    const lastRun = getLatestCrawlRun(db);
+    if (!lastRun) {
+      return res.json({ status: "never_run", message: "No crawl has been run yet." });
+    }
+
+    res.json({
+      runId: lastRun.id,
+      status: lastRun.status,
+      startedAt: lastRun.startedAt,
+      completedAt: lastRun.completedAt,
+      itemsFound: lastRun.itemsFound,
+      itemsNew: lastRun.itemsNew,
+      itemsUpdated: lastRun.itemsUpdated,
+      errorMessage: lastRun.errorMessage,
     });
   });
 

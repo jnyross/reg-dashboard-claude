@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Global Under-16 Regulation Dashboard</title>
+  <title>Global Teen Regulation Dashboard</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -14,14 +14,18 @@
 
   <header>
     <div class="header-content">
-      <h1>Global Under-16 Regulation Dashboard</h1>
-      <p class="last-updated">Last updated: <span id="last-updated">Loading...</span></p>
+      <h1>Global Teen (13-18) Regulation Dashboard</h1>
+      <div class="header-meta">
+        <p class="last-updated">Last updated: <span id="last-updated">Loading...</span></p>
+        <p class="last-crawled">Last crawled: <span id="last-crawled">Never</span></p>
+        <button id="crawl-btn" class="btn-crawl" onclick="triggerCrawl()">Run Crawl</button>
+      </div>
     </div>
   </header>
 
   <main>
     <section class="brief-section">
-      <h2>Just Read: Priority Briefing</h2>
+      <h2>Priority Briefing</h2>
       <div id="brief-container" class="brief-grid">
         <div class="loading">Loading brief...</div>
       </div>
@@ -38,14 +42,23 @@
             </select>
           </div>
           <div class="filter-group">
+            <label for="age-bracket-filter">Age Bracket:</label>
+            <select id="age-bracket-filter">
+              <option value="">All Ages</option>
+              <option value="13-15">13-15 (Early Teen)</option>
+              <option value="16-18">16-18 (Late Teen)</option>
+              <option value="both">Both (13-18)</option>
+            </select>
+          </div>
+          <div class="filter-group">
             <label for="min-risk-filter">Min Risk:</label>
             <select id="min-risk-filter">
               <option value="">Any</option>
-              <option value="1">1+ 🌶️</option>
-              <option value="2">2+ 🌶️</option>
-              <option value="3">3+ 🌶️</option>
-              <option value="4">4+ 🌶️</option>
-              <option value="5">5 🌶️</option>
+              <option value="1">1+</option>
+              <option value="2">2+</option>
+              <option value="3">3+</option>
+              <option value="4">4+</option>
+              <option value="5">5</option>
             </select>
           </div>
           <button onclick="applyFilters()" class="btn-primary">Apply Filters</button>

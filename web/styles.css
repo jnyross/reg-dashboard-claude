@@ -26,7 +26,7 @@ body {
 }
 
 .error-banner {
-  background-color: var(--danger-color);
+  background-color: var(--accent-color);
   color: white;
   padding: 12px 20px;
   display: flex;
@@ -56,6 +56,11 @@ header {
 .header-content {
   max-width: 1400px;
   margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 h1 {
@@ -63,10 +68,38 @@ h1 {
   font-size: 1.75rem;
 }
 
-.last-updated {
+.header-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.last-updated, .last-crawled {
   color: var(--text-secondary);
   font-size: 0.875rem;
   margin: 0;
+}
+
+.btn-crawl {
+  padding: 8px 20px;
+  background: var(--success-color);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-crawl:hover:not(:disabled) {
+  background: #157347;
+}
+
+.btn-crawl:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 main {
@@ -110,9 +143,16 @@ section {
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
+.brief-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
 .brief-card .title {
   font-weight: 600;
-  margin-bottom: 8px;
   font-size: 1rem;
 }
 
@@ -166,6 +206,48 @@ section {
 
 .brief-card .source-link:hover {
   text-decoration: underline;
+}
+
+/* Reliability badge */
+.reliability-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+/* Age bracket badge */
+.age-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: #6f42c1;
+  color: white;
+  white-space: nowrap;
+}
+
+/* Product tags */
+.products {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.product-tag {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  background: #e2e3e5;
+  color: #41464b;
 }
 
 .events-section {
@@ -380,15 +462,19 @@ section {
   main {
     padding: 12px;
   }
-  
+
+  .header-content {
+    flex-direction: column;
+  }
+
   .section-header {
     flex-direction: column;
   }
-  
+
   .filters {
     width: 100%;
   }
-  
+
   .events-table {
     display: block;
     overflow-x: auto;
