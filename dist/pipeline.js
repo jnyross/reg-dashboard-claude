@@ -3,12 +3,32 @@
  * Full crawl + analyze pipeline orchestrator.
  * Coordinates: source registry → crawler → analyzer → persistence.
  */
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.runPipeline = runPipeline;
+const node_crypto_1 = __importDefault(require("node:crypto"));
 const sources_1 = require("./sources");
 const crawler_1 = require("./crawler");
 const analyzer_1 = require("./analyzer");
 const db_1 = require("./db");
+function normalizeForHash(value) {
+    return value.replace(/\s+/g, " ").trim().toLowerCase();
+}
+function hashText(value) {
+    return node_crypto_1.default.createHash("sha1").update(normalizeForHash(value)).digest("hex");
+}
+function buildRegulationKey(country, state, title) {
+    return [normalizeForHash(country || "unknown"), normalizeForHash(state || ""), normalizeForHash(title || "untitled")].join("|");
+}
+function buildDeduplicationKey(country, state, title, sourceUrl, rawText) {
+    const regulationKey = buildRegulationKey(country, state, title);
+    const normalizedUrl = (sourceUrl || "").trim().toLowerCase();
+    const textHash = hashText(rawText || title);
+    const itemIdentity = normalizedUrl || `text:${textHash}`;
+    return `${regulationKey}::${itemIdentity}`;
+}
 /**
  * Run the full crawl + analyze + persist pipeline.
  */
@@ -50,6 +70,7 @@ async function runPipeline(db, apiKey, options = {}) {
         let itemsNew = 0;
         let itemsUpdated = 0;
         let itemsDuplicate = 0;
+        const seenDeduplicationKeys = new Set();
         const persistTransaction = db.transaction(() => {
             for (const { item, analysis } of analyzed) {
                 try {
@@ -83,6 +104,12 @@ async function runPipeline(db, apiKey, options = {}) {
                         publishedDate: analysis.publishedDate,
                         sourceId,
                     };
+                    const deduplicationKey = buildDeduplicationKey(input.jurisdictionCountry, input.jurisdictionState, input.title, input.sourceUrlLink, input.rawText ?? "");
+                    if (seenDeduplicationKeys.has(deduplicationKey)) {
+                        itemsDuplicate++;
+                        continue;
+                    }
+                    seenDeduplicationKeys.add(deduplicationKey);
                     const result = (0, db_1.upsertEvent)(db, input);
                     if (result === "new")
                         itemsNew++;

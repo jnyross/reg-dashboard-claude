@@ -3,6 +3,7 @@
  * Coordinates: source registry → crawler → analyzer → persistence.
  */
 
+import crypto from "node:crypto";
 import DatabaseConstructor from "better-sqlite3";
 import { sourceRegistry, twitterSearchSources, type RegistrySource } from "./sources";
 import { crawlAllSources } from "./crawler";
@@ -34,6 +35,32 @@ export type PipelineOptions = {
   analyzeConcurrency?: number;
   onProgress?: (stage: string, message: string) => void;
 };
+
+function normalizeForHash(value: string): string {
+  return value.replace(/\s+/g, " ").trim().toLowerCase();
+}
+
+function hashText(value: string): string {
+  return crypto.createHash("sha1").update(normalizeForHash(value)).digest("hex");
+}
+
+function buildRegulationKey(country: string, state: string | null, title: string): string {
+  return [normalizeForHash(country || "unknown"), normalizeForHash(state || ""), normalizeForHash(title || "untitled")].join("|");
+}
+
+function buildDeduplicationKey(
+  country: string,
+  state: string | null,
+  title: string,
+  sourceUrl: string | null,
+  rawText: string,
+): string {
+  const regulationKey = buildRegulationKey(country, state, title);
+  const normalizedUrl = (sourceUrl || "").trim().toLowerCase();
+  const textHash = hashText(rawText || title);
+  const itemIdentity = normalizedUrl || `text:${textHash}`;
+  return `${regulationKey}::${itemIdentity}`;
+}
 
 /**
  * Run the full crawl + analyze + persist pipeline.
@@ -97,6 +124,7 @@ export async function runPipeline(
     let itemsNew = 0;
     let itemsUpdated = 0;
     let itemsDuplicate = 0;
+    const seenDeduplicationKeys = new Set<string>();
 
     const persistTransaction = db.transaction(() => {
       for (const { item, analysis } of analyzed) {
@@ -132,6 +160,20 @@ export async function runPipeline(
             publishedDate: analysis.publishedDate,
             sourceId,
           };
+
+          const deduplicationKey = buildDeduplicationKey(
+            input.jurisdictionCountry,
+            input.jurisdictionState,
+            input.title,
+            input.sourceUrlLink,
+            input.rawText ?? "",
+          );
+
+          if (seenDeduplicationKeys.has(deduplicationKey)) {
+            itemsDuplicate++;
+            continue;
+          }
+          seenDeduplicationKeys.add(deduplicationKey);
 
           const result = upsertEvent(db, input);
           if (result === "new") itemsNew++;

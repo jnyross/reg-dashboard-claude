@@ -3,12 +3,16 @@
  * Crawler: fetches pages, RSS feeds, search results, and X/Twitter API items from the source registry.
  * Uses Node built-in fetch. Handles errors gracefully with per-source timeouts.
  */
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.crawlSource = crawlSource;
 exports.crawlAllSources = crawlAllSources;
+const node_crypto_1 = __importDefault(require("node:crypto"));
 const twitter_crawler_1 = require("./twitter-crawler");
 const FETCH_TIMEOUT_MS = 30_000;
-const MAX_TEXT_LENGTH = 12_000;
+const MAX_TEXT_LENGTH = 10_000;
 const TWITTER_INTER_QUERY_DELAY_MS = 1_500;
 function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -173,10 +177,20 @@ async function crawlSource(source) {
         return [];
     }
 }
+function normalizeTextForHash(text) {
+    return text.replace(/\s+/g, " ").trim().toLowerCase();
+}
+function hashText(text) {
+    return node_crypto_1.default.createHash("sha1").update(normalizeTextForHash(text)).digest("hex");
+}
 function dedupeItems(items) {
     const deduped = new Map();
     for (const item of items) {
-        const key = item.url?.trim().toLowerCase() || `${item.source.name.toLowerCase()}::${item.title.toLowerCase()}`;
+        const normalizedUrl = item.url?.trim().toLowerCase() ?? "";
+        const textHash = hashText(item.text || item.title);
+        const key = normalizedUrl
+            ? `${item.source.name.toLowerCase()}::${normalizedUrl}`
+            : `${item.source.name.toLowerCase()}::text:${textHash}`;
         if (!deduped.has(key)) {
             deduped.set(key, item);
         }

@@ -95,6 +95,47 @@ export function initializeSchema(db: DatabaseConstructor.Database): void {
       error_message TEXT
     );
 
+    CREATE TABLE IF NOT EXISTS event_history (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      event_id TEXT NOT NULL,
+      changed_at TEXT NOT NULL,
+      changed_by TEXT NOT NULL DEFAULT 'system',
+      change_type TEXT NOT NULL CHECK (change_type IN ('created', 'updated', 'status_changed', 'amended', 'deleted', 'feedback')),
+      field_name TEXT,
+      previous_value TEXT,
+      new_value TEXT,
+      FOREIGN KEY (event_id) REFERENCES regulation_events (id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS saved_searches (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      filters_json TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS alert_subscriptions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      email TEXT,
+      frequency TEXT NOT NULL DEFAULT 'daily' CHECK (frequency IN ('daily', 'weekly')),
+      min_chili INTEGER NOT NULL DEFAULT 4 CHECK (min_chili BETWEEN 1 AND 5),
+      webhook_url TEXT,
+      enabled INTEGER NOT NULL DEFAULT 1 CHECK (enabled IN (0,1)),
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS notifications (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      event_id TEXT NOT NULL,
+      severity TEXT NOT NULL CHECK (severity IN ('info', 'warning', 'critical')),
+      message TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      read_at TEXT,
+      FOREIGN KEY (event_id) REFERENCES regulation_events (id) ON DELETE CASCADE
+    );
+
     CREATE INDEX IF NOT EXISTS idx_regulation_events_stage
       ON regulation_events(stage);
     CREATE INDEX IF NOT EXISTS idx_regulation_events_jurisdiction_country
@@ -103,8 +144,16 @@ export function initializeSchema(db: DatabaseConstructor.Database): void {
       ON regulation_events(jurisdiction_state);
     CREATE INDEX IF NOT EXISTS idx_regulation_events_age_bracket
       ON regulation_events(age_bracket);
+    CREATE INDEX IF NOT EXISTS idx_regulation_events_published_date
+      ON regulation_events(published_date);
+    CREATE INDEX IF NOT EXISTS idx_regulation_events_updated_at
+      ON regulation_events(updated_at);
     CREATE INDEX IF NOT EXISTS idx_feedback_event_id
       ON feedback(event_id);
+    CREATE INDEX IF NOT EXISTS idx_event_history_event_id
+      ON event_history(event_id, changed_at DESC);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_notifications_event_id
+      ON notifications(event_id);
     CREATE UNIQUE INDEX IF NOT EXISTS idx_dedup_url_jurisdiction_title
       ON regulation_events(source_url_link, jurisdiction_country, title);
   `);
@@ -123,7 +172,7 @@ function addColumnIfNotExists(
   }
 }
 
-/** Run migrations for Phase 2 columns on an existing database */
+/** Run migrations for existing databases */
 export function migrateSchema(db: DatabaseConstructor.Database): void {
   addColumnIfNotExists(db, "sources", "reliability_tier", "INTEGER NOT NULL DEFAULT 3");
   addColumnIfNotExists(db, "sources", "last_crawled_at", "TEXT");
@@ -146,7 +195,53 @@ export function migrateSchema(db: DatabaseConstructor.Database): void {
       items_updated INTEGER DEFAULT 0,
       error_message TEXT
     );
+
+    CREATE TABLE IF NOT EXISTS event_history (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      event_id TEXT NOT NULL,
+      changed_at TEXT NOT NULL,
+      changed_by TEXT NOT NULL DEFAULT 'system',
+      change_type TEXT NOT NULL DEFAULT 'updated',
+      field_name TEXT,
+      previous_value TEXT,
+      new_value TEXT,
+      FOREIGN KEY (event_id) REFERENCES regulation_events (id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS saved_searches (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      filters_json TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS alert_subscriptions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      email TEXT,
+      frequency TEXT NOT NULL DEFAULT 'daily',
+      min_chili INTEGER NOT NULL DEFAULT 4,
+      webhook_url TEXT,
+      enabled INTEGER NOT NULL DEFAULT 1,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS notifications (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      event_id TEXT NOT NULL,
+      severity TEXT NOT NULL,
+      message TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      read_at TEXT,
+      FOREIGN KEY (event_id) REFERENCES regulation_events (id) ON DELETE CASCADE
+    );
+
     CREATE INDEX IF NOT EXISTS idx_regulation_events_age_bracket ON regulation_events(age_bracket);
+    CREATE INDEX IF NOT EXISTS idx_regulation_events_published_date ON regulation_events(published_date);
+    CREATE INDEX IF NOT EXISTS idx_regulation_events_updated_at ON regulation_events(updated_at);
+    CREATE INDEX IF NOT EXISTS idx_event_history_event_id ON event_history(event_id, changed_at DESC);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_notifications_event_id ON notifications(event_id);
   `);
 }
 
@@ -160,6 +255,65 @@ export type CrawlRun = {
   itemsUpdated: number;
   errorMessage: string | null;
 };
+
+export type EventHistoryEntry = {
+  id: number;
+  eventId: string;
+  changedAt: string;
+  changedBy: string;
+  changeType: "created" | "updated" | "status_changed" | "amended" | "deleted" | "feedback";
+  fieldName: string | null;
+  previousValue: string | null;
+  newValue: string | null;
+};
+
+export function addEventHistory(
+  db: DatabaseConstructor.Database,
+  entry: {
+    eventId: string;
+    changedBy?: string;
+    changeType: EventHistoryEntry["changeType"];
+    fieldName?: string | null;
+    previousValue?: string | null;
+    newValue?: string | null;
+    changedAt?: string;
+  },
+): void {
+  db.prepare(
+    `INSERT INTO event_history (event_id, changed_at, changed_by, change_type, field_name, previous_value, new_value)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+  ).run(
+    entry.eventId,
+    entry.changedAt ?? new Date().toISOString(),
+    entry.changedBy ?? "system",
+    entry.changeType,
+    entry.fieldName ?? null,
+    entry.previousValue ?? null,
+    entry.newValue ?? null,
+  );
+}
+
+export function getEventHistory(db: DatabaseConstructor.Database, eventId: string): EventHistoryEntry[] {
+  const rows = db
+    .prepare(
+      `SELECT id, event_id, changed_at, changed_by, change_type, field_name, previous_value, new_value
+       FROM event_history
+       WHERE event_id = ?
+       ORDER BY changed_at DESC, id DESC`,
+    )
+    .all(eventId) as Array<Record<string, unknown>>;
+
+  return rows.map((row) => ({
+    id: row.id as number,
+    eventId: row.event_id as string,
+    changedAt: row.changed_at as string,
+    changedBy: row.changed_by as string,
+    changeType: row.change_type as EventHistoryEntry["changeType"],
+    fieldName: (row.field_name as string | null) ?? null,
+    previousValue: (row.previous_value as string | null) ?? null,
+    newValue: (row.new_value as string | null) ?? null,
+  }));
+}
 
 export function startCrawlRun(db: DatabaseConstructor.Database): number {
   const result = db
@@ -225,24 +379,75 @@ export type UpsertEventInput = {
   sourceId: number;
 };
 
+function normalizeForHash(value: string): string {
+  return value.replace(/\s+/g, " ").trim().toLowerCase();
+}
+
+function hashText(value: string | null | undefined): string {
+  return crypto.createHash("sha1").update(normalizeForHash(value ?? "")).digest("hex");
+}
+
+function buildRegulationKey(country: string, state: string | null | undefined, title: string): string {
+  return [normalizeForHash(country), normalizeForHash(state ?? ""), normalizeForHash(title)].join("|");
+}
+
 /**
- * Upsert a regulation event. Dedup by (jurisdiction_country + title) so cross-source
- * signals (including multiple tweets) merge into one regulation event.
+ * Upsert a regulation event. Dedup by URL, text hash, and regulation key.
  * Returns 'new' if inserted, 'updated' if changed, 'duplicate' if unchanged.
  */
 export function upsertEvent(
   db: DatabaseConstructor.Database,
   input: UpsertEventInput,
 ): "new" | "updated" | "duplicate" {
-  const existing = db
+  const regulationKey = buildRegulationKey(
+    input.jurisdictionCountry,
+    input.jurisdictionState,
+    input.title,
+  );
+  const normalizedSourceUrl = (input.sourceUrlLink ?? "").trim().toLowerCase();
+  const contentHash = hashText(input.rawText);
+
+  const candidates = db
     .prepare(
-      `SELECT id, stage, summary, impact_score, chili_score
+      `SELECT id, stage, summary, business_impact, age_bracket,
+              impact_score, likelihood_score, confidence_score, chili_score,
+              jurisdiction_country, jurisdiction_state, title, source_url_link, raw_text
        FROM regulation_events
-       WHERE jurisdiction_country = ? AND lower(title) = lower(?)
-       ORDER BY updated_at DESC
-       LIMIT 1`,
+       WHERE lower(jurisdiction_country) = lower(?)
+         AND lower(COALESCE(jurisdiction_state, '')) = lower(COALESCE(?, ''))
+         AND (
+           lower(title) = lower(?)
+           OR (source_url_link IS NOT NULL AND lower(source_url_link) = lower(?))
+         )
+       ORDER BY updated_at DESC`,
     )
-    .get(input.jurisdictionCountry, input.title) as Record<string, unknown> | undefined;
+    .all(
+      input.jurisdictionCountry,
+      input.jurisdictionState ?? "",
+      input.title,
+      input.sourceUrlLink ?? "",
+    ) as Array<Record<string, unknown>>;
+
+  const existing = candidates.find((candidate) => {
+    const candidateRegulationKey = buildRegulationKey(
+      String(candidate.jurisdiction_country ?? ""),
+      candidate.jurisdiction_state ? String(candidate.jurisdiction_state) : "",
+      String(candidate.title ?? ""),
+    );
+    const candidateUrl = String(candidate.source_url_link ?? "").trim().toLowerCase();
+    const candidateHash = hashText(String(candidate.raw_text ?? ""));
+
+    const urlMatch = Boolean(normalizedSourceUrl && candidateUrl && normalizedSourceUrl === candidateUrl);
+    const hashMatch = Boolean(contentHash && candidateHash && contentHash === candidateHash);
+    const regulationMatch = candidateRegulationKey === regulationKey;
+    const bothHaveDistinctUrls = Boolean(
+      normalizedSourceUrl
+      && candidateUrl
+      && normalizedSourceUrl !== candidateUrl,
+    );
+
+    return (urlMatch && regulationMatch) || (!bothHaveDistinctUrls && hashMatch && regulationMatch);
+  }) as Record<string, unknown> | undefined;
 
   const now = new Date().toISOString();
 
@@ -250,7 +455,11 @@ export function upsertEvent(
     const changed =
       existing.stage !== input.stage ||
       existing.summary !== input.summary ||
+      existing.business_impact !== input.businessImpact ||
+      existing.age_bracket !== input.ageBracket ||
       existing.impact_score !== input.impactScore ||
+      existing.likelihood_score !== input.likelihoodScore ||
+      existing.confidence_score !== input.confidenceScore ||
       existing.chili_score !== input.chiliScore;
 
     if (!changed) return "duplicate";
@@ -277,6 +486,29 @@ export function upsertEvent(
       now,
       existing.id,
     );
+
+    if (existing.stage !== input.stage) {
+      addEventHistory(db, {
+        eventId: String(existing.id),
+        changeType: "status_changed",
+        fieldName: "stage",
+        previousValue: String(existing.stage),
+        newValue: input.stage,
+        changedBy: "pipeline",
+        changedAt: now,
+      });
+    } else {
+      addEventHistory(db, {
+        eventId: String(existing.id),
+        changeType: "updated",
+        fieldName: "analysis",
+        previousValue: null,
+        newValue: "Pipeline refresh",
+        changedBy: "pipeline",
+        changedAt: now,
+      });
+    }
+
     return "updated";
   }
 
@@ -322,6 +554,17 @@ export function upsertEvent(
     now,
     now,
   );
+
+  addEventHistory(db, {
+    eventId: id,
+    changeType: "created",
+    fieldName: "event",
+    previousValue: null,
+    newValue: "Event created",
+    changedBy: "pipeline",
+    changedAt: now,
+  });
+
   return "new";
 }
 
@@ -340,7 +583,9 @@ export function ensureSource(
     | { id: number }
     | undefined;
   if (existing) {
-    db.prepare("UPDATE sources SET name = ?, url = ?, authority_type = ?, jurisdiction = ?, reliability_tier = ?, last_crawled_at = ? WHERE id = ?").run(
+    db.prepare(
+      "UPDATE sources SET name = ?, url = ?, authority_type = ?, jurisdiction = ?, reliability_tier = ?, last_crawled_at = ? WHERE id = ?",
+    ).run(
       source.name,
       source.url,
       source.authorityType,
@@ -359,4 +604,3 @@ export function ensureSource(
     .run(source.name, source.url, source.authorityType, source.jurisdiction, source.reliabilityTier, new Date().toISOString());
   return Number(result.lastInsertRowid);
 }
-

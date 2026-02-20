@@ -3,7 +3,7 @@
  * Runs the full crawl + analyze + persist pipeline.
  */
 
-import { openDatabase, initializeSchema } from "./db";
+import { openDatabase, initializeSchema, migrateSchema } from "./db";
 import { seedSampleData } from "./seed";
 import { runPipeline } from "./pipeline";
 
@@ -18,6 +18,7 @@ async function main() {
   const databasePath = process.env.DATABASE_PATH ?? undefined;
   const db = openDatabase(databasePath);
   initializeSchema(db);
+  migrateSchema(db);
   // Skip seed data for clean crawl results
   // seedSampleData(db);
 

@@ -3,6 +3,7 @@
  * Uses Node built-in fetch. Handles errors gracefully with per-source timeouts.
  */
 
+import crypto from "node:crypto";
 import { type RegistrySource } from "./sources";
 import { crawlTwitterSources } from "./twitter-crawler";
 
@@ -15,7 +16,7 @@ export type CrawledItem = {
 };
 
 const FETCH_TIMEOUT_MS = 30_000;
-const MAX_TEXT_LENGTH = 12_000;
+const MAX_TEXT_LENGTH = 10_000;
 const TWITTER_INTER_QUERY_DELAY_MS = 1_500;
 
 function sleep(ms: number): Promise<void> {
@@ -203,10 +204,23 @@ export async function crawlSource(source: RegistrySource): Promise<CrawledItem[]
   }
 }
 
+function normalizeTextForHash(text: string): string {
+  return text.replace(/\s+/g, " ").trim().toLowerCase();
+}
+
+function hashText(text: string): string {
+  return crypto.createHash("sha1").update(normalizeTextForHash(text)).digest("hex");
+}
+
 function dedupeItems(items: CrawledItem[]): CrawledItem[] {
   const deduped = new Map<string, CrawledItem>();
   for (const item of items) {
-    const key = item.url?.trim().toLowerCase() || `${item.source.name.toLowerCase()}::${item.title.toLowerCase()}`;
+    const normalizedUrl = item.url?.trim().toLowerCase() ?? "";
+    const textHash = hashText(item.text || item.title);
+    const key = normalizedUrl
+      ? `${item.source.name.toLowerCase()}::${normalizedUrl}`
+      : `${item.source.name.toLowerCase()}::text:${textHash}`;
+
     if (!deduped.has(key)) {
       deduped.set(key, item);
     }

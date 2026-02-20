@@ -258,9 +258,11 @@ export async function analyzeItem(
     const message = error instanceof Error ? error.message : String(error);
     if (/\b401\b|authentication_error|login fail/i.test(message)) {
       minimaxAuthFailed = true;
+      console.warn(`[analyzer] Authentication failed for "${item.title}", using fallback analysis`);
+      return buildFallbackAnalysis(item);
     }
     console.warn(`[analyzer] Analysis failed for "${item.title}": ${message}`);
-    return buildFallbackAnalysis(item);
+    return null;
   }
 }
 
