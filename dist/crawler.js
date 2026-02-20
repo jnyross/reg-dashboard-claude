@@ -1,13 +1,18 @@
 "use strict";
 /**
- * Crawler: fetches pages, RSS feeds, and search results from the source registry.
+ * Crawler: fetches pages, RSS feeds, search results, and X/Twitter API items from the source registry.
  * Uses Node built-in fetch. Handles errors gracefully with per-source timeouts.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.crawlSource = crawlSource;
 exports.crawlAllSources = crawlAllSources;
+const twitter_crawler_1 = require("./twitter-crawler");
 const FETCH_TIMEOUT_MS = 30_000;
 const MAX_TEXT_LENGTH = 12_000;
+const TWITTER_INTER_QUERY_DELAY_MS = 1_500;
+function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
 /** Strip HTML tags and collapse whitespace */
 function stripHtml(html) {
     return html
@@ -148,6 +153,14 @@ async function crawlSource(source) {
                 return await crawlRssFeed(source);
             case "news_search":
                 return await crawlNewsSearch(source);
+            case "twitter_search": {
+                const bearerToken = process.env.X_BEARER_TOKEN;
+                if (!bearerToken) {
+                    console.warn(`[crawler] Skipping X source \"${source.name}\": X_BEARER_TOKEN not set`);
+                    return [];
+                }
+                return await (0, twitter_crawler_1.crawlTwitterSources)([source], bearerToken);
+            }
             case "government_page":
             case "legal_database":
             default:
@@ -156,19 +169,31 @@ async function crawlSource(source) {
     }
     catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        console.warn(`[crawler] Failed to crawl "${source.name}": ${message}`);
+        console.warn(`[crawler] Failed to crawl \"${source.name}\": ${message}`);
         return [];
     }
 }
+function dedupeItems(items) {
+    const deduped = new Map();
+    for (const item of items) {
+        const key = item.url?.trim().toLowerCase() || `${item.source.name.toLowerCase()}::${item.title.toLowerCase()}`;
+        if (!deduped.has(key)) {
+            deduped.set(key, item);
+        }
+    }
+    return [...deduped.values()];
+}
 /**
  * Crawl all sources from the registry. Returns all crawled items.
- * Runs sources in parallel with concurrency limit.
+ * Runs non-Twitter sources in parallel; X/Twitter sources sequentially and conservatively.
  */
 async function crawlAllSources(sources, concurrency = 5, onProgress) {
     const allItems = [];
+    const nonTwitterSources = sources.filter((s) => s.type !== "twitter_search");
+    const twitterSources = sources.filter((s) => s.type === "twitter_search");
     let completed = 0;
-    for (let i = 0; i < sources.length; i += concurrency) {
-        const batch = sources.slice(i, i + concurrency);
+    for (let i = 0; i < nonTwitterSources.length; i += concurrency) {
+        const batch = nonTwitterSources.slice(i, i + concurrency);
         const results = await Promise.allSettled(batch.map((s) => crawlSource(s)));
         for (let j = 0; j < results.length; j++) {
             completed++;
@@ -179,6 +204,16 @@ async function crawlAllSources(sources, concurrency = 5, onProgress) {
             onProgress?.(completed, sources.length, batch[j].name);
         }
     }
-    return allItems;
+    for (let i = 0; i < twitterSources.length; i++) {
+        const source = twitterSources[i];
+        const result = await crawlSource(source);
+        allItems.push(...result);
+        completed++;
+        onProgress?.(completed, sources.length, source.name);
+        if (i < twitterSources.length - 1) {
+            await sleep(TWITTER_INTER_QUERY_DELAY_MS);
+        }
+    }
+    return dedupeItems(allItems);
 }
 //# sourceMappingURL=crawler.js.map

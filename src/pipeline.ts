@@ -4,9 +4,9 @@
  */
 
 import DatabaseConstructor from "better-sqlite3";
-import { sourceRegistry, type RegistrySource } from "./sources";
-import { crawlAllSources, type CrawledItem } from "./crawler";
-import { analyzeItems, type AnalysisResult } from "./analyzer";
+import { sourceRegistry, twitterSearchSources, type RegistrySource } from "./sources";
+import { crawlAllSources } from "./crawler";
+import { analyzeItems } from "./analyzer";
 import {
   ensureSource,
   upsertEvent,
@@ -44,7 +44,7 @@ export async function runPipeline(
   options: PipelineOptions = {},
 ): Promise<PipelineResult> {
   const startTime = Date.now();
-  const sources = options.sources ?? sourceRegistry;
+  const sources = options.sources ?? [...sourceRegistry, ...twitterSearchSources];
   const errors: string[] = [];
 
   const runId = startCrawlRun(db);
@@ -83,7 +83,7 @@ export async function runPipeline(
     const analyzed = await analyzeItems(
       crawledItems,
       apiKey,
-      options.analyzeConcurrency ?? 5,
+      options.analyzeConcurrency ?? Math.max(10, Number(process.env.ANALYSIS_CONCURRENCY || 12)),
       (completed, total, title) => {
         options.onProgress?.("analyze", `[${completed}/${total}] Analyzed: ${title.slice(0, 60)}`);
       },

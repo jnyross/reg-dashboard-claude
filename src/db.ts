@@ -226,7 +226,8 @@ export type UpsertEventInput = {
 };
 
 /**
- * Upsert a regulation event. Dedup by (source_url_link, jurisdiction_country, title).
+ * Upsert a regulation event. Dedup by (jurisdiction_country + title) so cross-source
+ * signals (including multiple tweets) merge into one regulation event.
  * Returns 'new' if inserted, 'updated' if changed, 'duplicate' if unchanged.
  */
 export function upsertEvent(
@@ -237,9 +238,11 @@ export function upsertEvent(
     .prepare(
       `SELECT id, stage, summary, impact_score, chili_score
        FROM regulation_events
-       WHERE source_url_link = ? AND jurisdiction_country = ? AND title = ?`,
+       WHERE jurisdiction_country = ? AND lower(title) = lower(?)
+       ORDER BY updated_at DESC
+       LIMIT 1`,
     )
-    .get(input.sourceUrlLink, input.jurisdictionCountry, input.title) as Record<string, unknown> | undefined;
+    .get(input.jurisdictionCountry, input.title) as Record<string, unknown> | undefined;
 
   const now = new Date().toISOString();
 

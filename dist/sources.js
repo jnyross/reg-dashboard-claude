@@ -5,10 +5,61 @@
  * Includes government pages, RSS feeds, legal analyses, and think tanks.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sourceRegistry = void 0;
+exports.sourceRegistry = exports.twitterSearchSources = void 0;
 exports.getSourcesByJurisdiction = getSourcesByJurisdiction;
 exports.getSourcesByMinReliability = getSourcesByMinReliability;
 exports.getRegisteredJurisdictions = getRegisteredJurisdictions;
+const TWITTER_RECENT_SEARCH_URL = "https://api.twitter.com/2/tweets/search/recent";
+exports.twitterSearchSources = [
+    {
+        name: "X Search — Under 16 / COPPA",
+        url: TWITTER_RECENT_SEARCH_URL,
+        type: "twitter_search",
+        authorityType: "supranational",
+        jurisdiction: "Global",
+        jurisdictionCountry: "Global",
+        reliabilityTier: 3,
+        searchKeywords: ["under 16", "COPPA", "age verification"],
+        description: "X recent search for under-16 and COPPA regulatory updates",
+        twitterQuery: '"under 16" OR "under 16s" OR COPPA OR "age verification" (regulation OR law OR bill OR legislation) -is:retweet',
+    },
+    {
+        name: "X Search — Meta Child Safety",
+        url: TWITTER_RECENT_SEARCH_URL,
+        type: "twitter_search",
+        authorityType: "supranational",
+        jurisdiction: "Global",
+        jurisdictionCountry: "Global",
+        reliabilityTier: 3,
+        searchKeywords: ["Meta", "Instagram", "child safety"],
+        description: "X recent search for Meta/Facebook/Instagram/WhatsApp child safety and privacy updates",
+        twitterQuery: '(Meta OR Facebook OR Instagram OR WhatsApp) ("child safety" OR "children\'s privacy" OR "minor" OR "age restriction") -is:retweet',
+    },
+    {
+        name: "X Search — DSA / OSA / KOSA",
+        url: TWITTER_RECENT_SEARCH_URL,
+        type: "twitter_search",
+        authorityType: "supranational",
+        jurisdiction: "Global",
+        jurisdictionCountry: "Global",
+        reliabilityTier: 3,
+        searchKeywords: ["DSA", "Online Safety Act", "KOSA"],
+        description: "X recent search for DSA/OSA/KOSA updates related to minors",
+        twitterQuery: '("Digital Services Act" OR DSA OR "Online Safety Act" OR "KOSA") (children OR minors OR teens) -is:retweet',
+    },
+    {
+        name: "X Search — TikTok/Snap/YouTube Compliance",
+        url: TWITTER_RECENT_SEARCH_URL,
+        type: "twitter_search",
+        authorityType: "supranational",
+        jurisdiction: "Global",
+        jurisdictionCountry: "Global",
+        reliabilityTier: 3,
+        searchKeywords: ["TikTok", "Snapchat", "YouTube", "compliance"],
+        description: "X recent search for platform age verification and child-protection compliance",
+        twitterQuery: '(TikTok OR Snapchat OR YouTube) ("age verification" OR "parental consent" OR "child protection") compliance -is:retweet',
+    },
+];
 exports.sourceRegistry = [
     // ══════════════════════════════════════════════════════════
     // US FEDERAL

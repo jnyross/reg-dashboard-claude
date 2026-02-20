@@ -14,7 +14,7 @@ const db_1 = require("./db");
  */
 async function runPipeline(db, apiKey, options = {}) {
     const startTime = Date.now();
-    const sources = options.sources ?? sources_1.sourceRegistry;
+    const sources = options.sources ?? [...sources_1.sourceRegistry, ...sources_1.twitterSearchSources];
     const errors = [];
     const runId = (0, db_1.startCrawlRun)(db);
     options.onProgress?.("start", `Crawl run #${runId} started with ${sources.length} sources`);
@@ -41,7 +41,7 @@ async function runPipeline(db, apiKey, options = {}) {
         }
         // 2. Analyze with LLM
         options.onProgress?.("analyze", `Analyzing ${crawledItems.length} items with MiniMax M2.5...`);
-        const analyzed = await (0, analyzer_1.analyzeItems)(crawledItems, apiKey, options.analyzeConcurrency ?? 5, (completed, total, title) => {
+        const analyzed = await (0, analyzer_1.analyzeItems)(crawledItems, apiKey, options.analyzeConcurrency ?? Math.max(10, Number(process.env.ANALYSIS_CONCURRENCY || 12)), (completed, total, title) => {
             options.onProgress?.("analyze", `[${completed}/${total}] Analyzed: ${title.slice(0, 60)}`);
         });
         options.onProgress?.("analyze_done", `${analyzed.length} relevant items found out of ${crawledItems.length}`);

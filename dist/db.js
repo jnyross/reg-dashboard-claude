@@ -180,15 +180,18 @@ function getLatestCrawlRun(db) {
     };
 }
 /**
- * Upsert a regulation event. Dedup by (source_url_link, jurisdiction_country, title).
+ * Upsert a regulation event. Dedup by (jurisdiction_country + title) so cross-source
+ * signals (including multiple tweets) merge into one regulation event.
  * Returns 'new' if inserted, 'updated' if changed, 'duplicate' if unchanged.
  */
 function upsertEvent(db, input) {
     const existing = db
         .prepare(`SELECT id, stage, summary, impact_score, chili_score
        FROM regulation_events
-       WHERE source_url_link = ? AND jurisdiction_country = ? AND title = ?`)
-        .get(input.sourceUrlLink, input.jurisdictionCountry, input.title);
+       WHERE jurisdiction_country = ? AND lower(title) = lower(?)
+       ORDER BY updated_at DESC
+       LIMIT 1`)
+        .get(input.jurisdictionCountry, input.title);
     const now = new Date().toISOString();
     if (existing) {
         const changed = existing.stage !== input.stage ||

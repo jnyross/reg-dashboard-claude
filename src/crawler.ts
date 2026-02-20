@@ -1,9 +1,10 @@
 /**
- * Crawler: fetches pages, RSS feeds, and search results from the source registry.
+ * Crawler: fetches pages, RSS feeds, search results, and X/Twitter API items from the source registry.
  * Uses Node built-in fetch. Handles errors gracefully with per-source timeouts.
  */
 
 import { type RegistrySource } from "./sources";
+import { crawlTwitterSources } from "./twitter-crawler";
 
 export type CrawledItem = {
   source: RegistrySource;
@@ -15,6 +16,11 @@ export type CrawledItem = {
 
 const FETCH_TIMEOUT_MS = 30_000;
 const MAX_TEXT_LENGTH = 12_000;
+const TWITTER_INTER_QUERY_DELAY_MS = 1_500;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 /** Strip HTML tags and collapse whitespace */
 function stripHtml(html: string): string {
@@ -46,17 +52,17 @@ function extractTitle(html: string): string {
 /** Extract meta description / og:description as fallback content */
 function extractMetaContent(html: string): string {
   const parts: string[] = [];
-  
+
   // og:description
   const ogDesc = html.match(/<meta[^>]*property=["']og:description["'][^>]*content=["']([^"']+)["']/i)
     ?? html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:description["']/i);
   if (ogDesc?.[1]) parts.push(ogDesc[1]);
-  
+
   // meta description
   const metaDesc = html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["']/i)
     ?? html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*name=["']description["']/i);
   if (metaDesc?.[1]) parts.push(metaDesc[1]);
-  
+
   // og:title
   const ogTitle = html.match(/<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']+)["']/i);
   if (ogTitle?.[1]) parts.push(ogTitle[1]);
@@ -177,6 +183,14 @@ export async function crawlSource(source: RegistrySource): Promise<CrawledItem[]
         return await crawlRssFeed(source);
       case "news_search":
         return await crawlNewsSearch(source);
+      case "twitter_search": {
+        const bearerToken = process.env.X_BEARER_TOKEN;
+        if (!bearerToken) {
+          console.warn(`[crawler] Skipping X source \"${source.name}\": X_BEARER_TOKEN not set`);
+          return [];
+        }
+        return await crawlTwitterSources([source], bearerToken);
+      }
       case "government_page":
       case "legal_database":
       default:
@@ -184,14 +198,25 @@ export async function crawlSource(source: RegistrySource): Promise<CrawledItem[]
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    console.warn(`[crawler] Failed to crawl "${source.name}": ${message}`);
+    console.warn(`[crawler] Failed to crawl \"${source.name}\": ${message}`);
     return [];
   }
 }
 
+function dedupeItems(items: CrawledItem[]): CrawledItem[] {
+  const deduped = new Map<string, CrawledItem>();
+  for (const item of items) {
+    const key = item.url?.trim().toLowerCase() || `${item.source.name.toLowerCase()}::${item.title.toLowerCase()}`;
+    if (!deduped.has(key)) {
+      deduped.set(key, item);
+    }
+  }
+  return [...deduped.values()];
+}
+
 /**
  * Crawl all sources from the registry. Returns all crawled items.
- * Runs sources in parallel with concurrency limit.
+ * Runs non-Twitter sources in parallel; X/Twitter sources sequentially and conservatively.
  */
 export async function crawlAllSources(
   sources: RegistrySource[],
@@ -199,10 +224,12 @@ export async function crawlAllSources(
   onProgress?: (completed: number, total: number, sourceName: string) => void,
 ): Promise<CrawledItem[]> {
   const allItems: CrawledItem[] = [];
+  const nonTwitterSources = sources.filter((s) => s.type !== "twitter_search");
+  const twitterSources = sources.filter((s) => s.type === "twitter_search");
   let completed = 0;
 
-  for (let i = 0; i < sources.length; i += concurrency) {
-    const batch = sources.slice(i, i + concurrency);
+  for (let i = 0; i < nonTwitterSources.length; i += concurrency) {
+    const batch = nonTwitterSources.slice(i, i + concurrency);
     const results = await Promise.allSettled(batch.map((s) => crawlSource(s)));
 
     for (let j = 0; j < results.length; j++) {
@@ -215,5 +242,17 @@ export async function crawlAllSources(
     }
   }
 
-  return allItems;
+  for (let i = 0; i < twitterSources.length; i++) {
+    const source = twitterSources[i];
+    const result = await crawlSource(source);
+    allItems.push(...result);
+    completed++;
+    onProgress?.(completed, sources.length, source.name);
+
+    if (i < twitterSources.length - 1) {
+      await sleep(TWITTER_INTER_QUERY_DELAY_MS);
+    }
+  }
+
+  return dedupeItems(allItems);
 }
