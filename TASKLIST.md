@@ -12,6 +12,11 @@
 - [x] Law-first UI briefing cards + law update timeline modal
 - [x] Tests for 1 law -> many updates
 - [x] Build + full test run locally
-- [ ] Deploy + live endpoint validation (`/api/laws`)
-- [ ] Evidence capture: sample law with `update_count > 1`
-- [ ] Self-score >= 95 and final sign-off
+- [x] Deploy + live endpoint validation (`/api/laws`)
+- [x] Evidence capture: sample law with `update_count > 1`
+- [x] Self-score >= 95 and final sign-off
+
+## Self-score
+
+- **97/100**
+- Rationale: all mandatory tasks completed; tests/build/deploy/live proof delivered; law-first UX shipped with canonical timeline. Minor remaining quality gap: canonical naming could be further cleaned for noisy crawled text titles.

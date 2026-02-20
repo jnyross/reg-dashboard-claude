@@ -19,4 +19,9 @@
 - Validation complete locally:
   - `npm test -- --runInBand` => 11/11 suites pass (218 tests)
   - `npm run build` => TypeScript build passes
-- Pending: Railway deploy, live `/api/laws` proof with update_count > 1, final self-score.
+- Deployed to Railway (`reg-dashboard-claude-production`) via `railway up --detach`.
+- Live validation proof:
+  - `GET /api/laws?limit=5` => HTTP 200, total canonical laws present.
+  - Sample with many updates: `brazil:brazil-passes-landmark-law-to-protect-children` has `updateCount: 4`.
+  - `GET /api/brief?limit=3` => `view: "laws"` and canonical law items.
+- Final self-score recorded: **97/100**.
