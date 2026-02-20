@@ -1134,7 +1134,7 @@ function createApp(db) {
         if (result.changes === 0) {
             return res.status(404).json({ error: "saved search not found" });
         }
-        return res.json({ deleted: true });
+        return res.status(204).send();
     });
     // Notifications
     app.get("/api/notifications", (req, res) => {

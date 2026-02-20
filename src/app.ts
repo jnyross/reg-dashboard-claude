@@ -1425,7 +1425,7 @@ export function createApp(db: DatabaseConstructor.Database) {
       return res.status(404).json({ error: "saved search not found" });
     }
 
-    return res.json({ deleted: true });
+    return res.status(204).send();
   });
 
   // Notifications
