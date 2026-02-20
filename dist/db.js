@@ -561,6 +561,23 @@ function computeRecencyWeight(referenceDate, nowTs) {
 function computeOverallEventRisk(row) {
     return (row.chili_score * 0.4) + (row.impact_score * 0.3) + (row.likelihood_score * 0.2) + (row.confidence_score * 0.1);
 }
+function scoreCanonicalLawName(name) {
+    const normalized = name.trim();
+    const words = normalized.split(/\s+/).filter(Boolean);
+    let score = 0;
+    if (/\b(Act|Bill|Directive|Regulation|Code|Rule)\b/i.test(normalized))
+        score += 6;
+    if (/\b(COPPA|KOSA|DSA|GDPR|DPDP|PDPA|AB-\d{1,5}|SB-\d{1,5}|HB-\d{1,5})\b/.test(normalized))
+        score += 4;
+    if (/\b\d{4}\b/.test(normalized))
+        score += 2;
+    if (/\b(framework|potentially|for kids under|the law has|this follows|to a lawsuit by)\b/i.test(normalized))
+        score -= 8;
+    if (/[.!?]/.test(normalized))
+        score -= 2;
+    score -= Math.max(0, words.length - 10);
+    return score;
+}
 function backfillLawsFromEvents(db) {
     const eventRows = db
         .prepare(`
@@ -604,11 +621,14 @@ function backfillLawsFromEvents(db) {
                 jurisdictionCountry: row.jurisdiction_country,
                 jurisdictionState: row.jurisdiction_state,
             });
+            const canonicalNameScore = scoreCanonicalLawName(canonical.lawName);
             const existing = groups.get(canonical.lawKey);
             if (existing) {
                 existing.updates.push(row);
-                if (canonical.lawName.length > existing.lawName.length) {
+                if (canonicalNameScore > existing.lawNameScore
+                    || (canonicalNameScore === existing.lawNameScore && canonical.lawName.length < existing.lawName.length)) {
                     existing.lawName = canonical.lawName;
+                    existing.lawNameScore = canonicalNameScore;
                 }
                 if (existing.lawType === "law" && canonical.lawType && canonical.lawType !== "law") {
                     existing.lawType = canonical.lawType;
@@ -618,6 +638,7 @@ function backfillLawsFromEvents(db) {
                 groups.set(canonical.lawKey, {
                     lawName: canonical.lawName,
                     lawType: canonical.lawType,
+                    lawNameScore: canonicalNameScore,
                     jurisdictionCountry: row.jurisdiction_country,
                     jurisdictionState: row.jurisdiction_state,
                     updates: [row],
