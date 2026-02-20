@@ -336,11 +336,15 @@ export function ensureSource(
     reliabilityTier: number;
   },
 ): number {
-  const existing = db.prepare("SELECT id FROM sources WHERE name = ?").get(source.name) as
+  const existing = db.prepare("SELECT id FROM sources WHERE name = ? OR url = ? LIMIT 1").get(source.name, source.url) as
     | { id: number }
     | undefined;
   if (existing) {
-    db.prepare("UPDATE sources SET reliability_tier = ?, last_crawled_at = ? WHERE id = ?").run(
+    db.prepare("UPDATE sources SET name = ?, url = ?, authority_type = ?, jurisdiction = ?, reliability_tier = ?, last_crawled_at = ? WHERE id = ?").run(
+      source.name,
+      source.url,
+      source.authorityType,
+      source.jurisdiction,
       source.reliabilityTier,
       new Date().toISOString(),
       existing.id,

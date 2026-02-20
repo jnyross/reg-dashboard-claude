@@ -1,0 +1,535 @@
+
+> global-under16-reg-dashboard-backend@0.1.0 crawl
+> tsx src/crawl-cli.ts
+
+Starting crawl pipeline...
+
+[START       ] Crawl run #2 started with 84 sources
+[CRAWL       ] Crawling 84 sources...
+[CRAWL       ] [1/84] Crawled: FTC Children's Privacy (COPPA)
+[CRAWL       ] [2/84] Crawled: FTC Kids' Privacy (COPPA) News
+[CRAWL       ] [3/84] Crawled: FTC Children's Privacy Business Guidance
+[CRAWL       ] [4/84] Crawled: Federal Register — COPPA Rule Final Amendments 2025
+[CRAWL       ] [5/84] Crawled: FTC COPPA Finalization Press Release (Jan 2025)
+[CRAWL       ] [6/84] Crawled: GovTrack — KOSA S.1748 Tracker
+[CRAWL       ] [7/84] Crawled: TechPolicy.Press — KOSA Tracker
+[CRAWL       ] [8/84] Crawled: California AADC (AB-2273)
+[CRAWL       ] [9/84] Crawled: NY AG — SAFE for Kids Act
+[CRAWL       ] [10/84] Crawled: Texas AG — SCOPE Act (HB 18)
+[CRAWL       ] [11/84] Crawled: Florida — HB 3 Online Protections for Minors
+[CRAWL       ] [12/84] Crawled: Orrick — US State Online Safety Law Tracker
+[CRAWL       ] [13/84] Crawled: Inside Privacy — State & Federal Minors' Privacy 2025
+[CRAWL       ] [14/84] Crawled: Mayer Brown — States & FTC Children's Privacy Actions
+[CRAWL       ] [15/84] Crawled: Hunton — Arkansas Social Media Safety Act Amendment
+[CRAWL       ] [16/84] Crawled: EU Digital Services Act
+[CRAWL       ] [17/84] Crawled: EC — DSA Article 28 Minors Guidelines
+[CRAWL       ] [18/84] Crawled: DSA Article 28 — Full Text
+[CRAWL       ] [19/84] Crawled: EDPB — Children Topic Documents
+[CRAWL       ] [20/84] Crawled: EDPB — Data Protection Day 2026 Children Statement
+[CRAWL       ] [21/84] Crawled: EU FRA — Consent Ages Across Member States
+[CRAWL       ] [22/84] Crawled: France CNIL — Digital Rights of Children
+[CRAWL       ] [23/84] Crawled: France CNIL — 8 Recommendations for Children Online
+[CRAWL       ] [24/84] Crawled: Ireland DPC — Child-Oriented Data Processing Fundamentals
+[CRAWL       ] [25/84] Crawled: Germany BfDI
+[CRAWL       ] [26/84] Crawled: Italy Garante Privacy
+[CRAWL       ] [27/84] Crawled: Spain AEPD — Children's Digital Protection
+[CRAWL       ] [28/84] Crawled: Netherlands — Autoriteit Persoonsgegevens
+[CRAWL       ] [29/84] Crawled: GOV.UK — Online Safety Act Explainer
+[CRAWL       ] [30/84] Crawled: Ofcom — Children's Safety Codes Statement
+[CRAWL       ] [31/84] Crawled: Ofcom — Quick Guide to Children's Safety Codes
+[CRAWL       ] [32/84] Crawled: ICO — Children's Code Guidance
+[CRAWL       ] [33/84] Crawled: UK Online Safety Act 2023
+[CRAWL       ] [34/84] Crawled: eSafety — Social Media Age Restrictions
+[CRAWL       ] [35/84] Crawled: eSafety — Young People Social Media Restrictions
+[CRAWL       ] [36/84] Crawled: Australia — Social Media Minimum Age Policy
+[CRAWL       ] [37/84] Crawled: Australia Online Safety Act 2021
+[CRAWL       ] [38/84] Crawled: Canada Online Harms Act (C-63) LEGISinfo
+[CRAWL       ] [39/84] Crawled: DOJ Canada — Bill C-63 Charter Statement
+[CRAWL       ] [40/84] Crawled: OPC Canada — Bill S-210 Analysis
+[CRAWL       ] [41/84] Crawled: China — Regulations on Protection of Minors Online
+[CRAWL       ] [42/84] Crawled: China — Overview of Minors Online Protections
+[CRAWL       ] [43/84] Crawled: Singapore PDPC — Children's Data Guidelines
+[CRAWL       ] [44/84] Crawled: South Korea Youth Protection Act
+[CRAWL       ] [45/84] Crawled: India — DPDP Act Children's Data (K&S Analysis)
+[CRAWL       ] [46/84] Crawled: India — ORF DPDP Rules Child Data Safety
+[CRAWL       ] [47/84] Crawled: A&O Shearman — APAC Children's Data Privacy Trends
+[CRAWL       ] [48/84] Crawled: ITIF — China Minor Mode Analysis
+[CRAWL       ] [49/84] Crawled: Hunton — China Draft Measures for Minors Online
+[CRAWL       ] [50/84] Crawled: Brazil — ECA Digital Law (Inside Privacy)
+[CRAWL       ] [51/84] Crawled: Brazil — IAPP Child Online Safety Bill Analysis
+[CRAWL       ] [52/84] Crawled: Brazil — HRW Landmark Law Report
+[CRAWL       ] [53/84] Crawled: DLA Piper — South Africa POPIA
+[CRAWL       ] [54/84] Crawled: Secure Privacy — UAE Data Protection Guide
+[CRAWL       ] [55/84] Crawled: Secure Privacy — Nigeria Data Protection Guide
+[CRAWL       ] [56/84] Crawled: Africa HR — Data Laws Across Africa
+[CRAWL       ] [57/84] Crawled: UN — Child and Youth Safety Online
+[CRAWL       ] [58/84] Crawled: ITU — Child Online Protection Guidelines
+[CRAWL       ] [59/84] Crawled: 5Rights Foundation
+[CRAWL       ] [60/84] Crawled: Common Sense Media
+[CRAWL       ] [61/84] Crawled: IWF — Online Safety Act Explained
+[CRAWL       ] [62/84] Crawled: WeProtect Global Alliance — Global Threat Assessment
+[CRAWL       ] [63/84] Crawled: GPEN Enforcement Sweep — Children's Data Protection
+[CRAWL       ] [64/84] Crawled: Hunton — FTC COPPA Rule Final Amendments
+[CRAWL       ] [65/84] Crawled: Reuters — Global Children's Social Media Legislation
+[CRAWL       ] [66/84] Crawled: TechPolicy.Press — US States Child Safety 2026 Outlook
+[CRAWL       ] [67/84] Crawled: Google News — KOSA Kids Online Safety Act
+[CRAWL       ] [68/84] Crawled: Google News — COPPA 2.0 Children Privacy
+[CRAWL       ] [69/84] Crawled: Google News — Children Online Safety Regulation
+[CRAWL       ] [70/84] Crawled: Google News — Social Media Kids Law
+[CRAWL       ] [71/84] Crawled: Google News — COPPA Regulation
+[CRAWL       ] [72/84] Crawled: Google News — Teen Online Safety
+[CRAWL       ] [73/84] Crawled: Google News — Children Data Protection GDPR
+[CRAWL       ] [74/84] Crawled: Google News — Meta Children Safety
+[CRAWL       ] [75/84] Crawled: Google News — China Children Internet Regulation
+[CRAWL       ] [76/84] Crawled: Google News — South Korea Youth Online
+[CRAWL       ] [77/84] Crawled: Google News — Japan Children Online Safety
+[CRAWL       ] [78/84] Crawled: Google News — Online Safety Children Age Verification
+[CRAWL       ] [79/84] Crawled: Google News — Brazil Children Online Protection
+[CRAWL       ] [80/84] Crawled: Google News — UAE Children Digital Safety
+[CRAWL       ] [81/84] Crawled: X Search — Under 16 / COPPA
+[CRAWL       ] [82/84] Crawled: X Search — Meta Child Safety
+[CRAWL       ] [83/84] Crawled: X Search — DSA / OSA / KOSA
+[CRAWL       ] [84/84] Crawled: X Search — TikTok/Snap/YouTube Compliance
+[CRAWL_DONE  ] Crawled 426 items from 84 sources
+[ANALYZE     ] Analyzing 426 items with MiniMax M2.5...
+[ANALYZE     ] [1/426] Analyzed: Children s Online Privacy Protection Rule ("COPPA") | Federa
+[ANALYZE     ] [2/426] Analyzed: Kids Privacy (COPPA) | Federal Trade Commission
+[ANALYZE     ] [3/426] Analyzed: Children s Privacy | Federal Trade Commission
+[ANALYZE     ] [4/426] Analyzed: Federal Register :: Children's Online Privacy Protection Rul
+[ANALYZE     ] [5/426] Analyzed: FTC Finalizes Changes to Children’s Privacy Rule Limiting Co
+[ANALYZE     ] [6/426] Analyzed: Kids Online Safety Act (S. 1748) - GovTrack.us
+[ANALYZE     ] [7/426] Analyzed: Kids Online Safety Act - S.1409 and H.R.7891 | TechPolicy.Pr
+[ANALYZE     ] [8/426] Analyzed: Bill Text - AB-2273 The California Age-Appropriate Design Co
+[ANALYZE     ] [9/426] Analyzed: Protecting Children Online | New York State Attorney General
+[ANALYZE     ] [10/426] Analyzed: Securing Children Online Through Parental Empowerment | Offi
+[ANALYZE     ] [11/426] Analyzed: 2024 Bill Summaries - The Florida Senate
+[ANALYZE     ] [12/426] Analyzed: Online Safety Law Center | Orrick
+[ANALYZE     ] [13/426] Analyzed: State and Federal Developments in Minors’ Privacy in 2025 | 
+[ANALYZE     ] [14/426] Analyzed: Children’s Online Privacy: Recent Actions by the States and 
+[ANALYZE     ] [15/426] Analyzed: Arkansas Amends Social Media Safety Act Following Permanent 
+[ANALYZE     ] [16/426] Analyzed: The Digital Services Act | Shaping Europe’s digital future
+[ANALYZE     ] [17/426] Analyzed: Commission publishes guidelines on the protection of minors 
+[ANALYZE     ] [18/426] Analyzed: Article 28, the Digital Services Act (DSA)
+[ANALYZE     ] [19/426] Analyzed: Children | European Data Protection Board
+[ANALYZE     ] [20/426] Analyzed: Data Protection Day 2026: keeping children’s personal data s
+[ANALYZE     ] [21/426] Analyzed: Consent to use data on children | European Union Agency for 
+[ANALYZE     ] [22/426] Analyzed: Digital rights of children | CNIL
+[ANALYZE     ] [23/426] Analyzed: CNIL publishes 8 recommendations to enhance the protection o
+[ANALYZE     ] [24/426] Analyzed: The Fundamentals for a Child-Oriented Approach to Data Proce
+[ANALYZE     ] [25/426] Analyzed: BfDI - Homepage
+[ANALYZE     ] [26/426] Analyzed: Home - Garante privacy en - Garante Privacy
+[ANALYZE     ] [27/426] Analyzed: AEPD publishes analysis on the protection of children in the
+[ANALYZE     ] [28/426] Analyzed: Home | Autoriteit Persoonsgegevens
+[ANALYZE     ] [29/426] Analyzed: Online Safety Act: explainer - GOV.UK
+[ANALYZE     ] [30/426] Analyzed: Statement: Protecting children from harms online
+[ANALYZE     ] [31/426] Analyzed: Protection of children duties under the Online Safety Act
+[ANALYZE     ] [32/426] Analyzed: Children's code guidance and resources | ICO
+[ANALYZE     ] [33/426] Analyzed: Online Safety Act 2023
+[ANALYZE     ] [34/426] Analyzed: Social media age restrictions | eSafety Commissioner
+[ANALYZE     ] [35/426] Analyzed: Online Safety Act 2021 - Federal Register of Legislation
+[ANALYZE     ] [36/426] Analyzed: C-63 (44-1) - LEGISinfo - Parliament of Canada
+[ANALYZE     ] [37/426] Analyzed: Issue Sheets on Bill S-210 - Office of the Privacy Commissio
+[ANALYZE     ] [38/426] Analyzed: Regulations on the Protection of Minors Online
+[ANALYZE     ] [39/426] Analyzed: Overview of Protections for Minors Online (with Comparison T
+[ANALYZE     ] [40/426] Analyzed: PDPC | Advisory Guidelines on the PDPA for Children's Person
+[ANALYZE     ] [41/426] Analyzed: YOUTH PROTECTION ACT
+[ANALYZE     ] [42/426] Analyzed: Children’s Data Protection Under India’s DPDP Rules
+[ANALYZE     ] [43/426] Analyzed: DPDP Rules and the Future of Child Data Safety
+[ANALYZE     ] [44/426] Analyzed: Navigating consent: emerging trends in children's data priva
+[ANALYZE     ] [45/426] Analyzed: China’s “Minor Mode”: Blueprint or Cautionary Tale? | ITIF
+[ANALYZE     ] [46/426] Analyzed: China Issued Draft Rules for Identifying Online Service Prov
+[ANALYZE     ] [47/426] Analyzed: Brazil Adopts Law Protecting Minors Online | Inside Privacy
+[ANALYZE     ] [48/426] Analyzed: Inside Brazil's child online safety bill | IAPP
+[ANALYZE     ] [49/426] Analyzed: Brazil Passes Landmark Law to Protect Children Online | Huma
+[ANALYZE     ] [50/426] Analyzed: Data protection laws in South Africa - Data Protection Laws 
+[ANALYZE     ] [51/426] Analyzed: Secure Privacy — UAE Data Protection Guide
+[ANALYZE     ] [52/426] Analyzed: Secure Privacy — Nigeria Data Protection Guide
+[ANALYZE     ] [53/426] Analyzed: Africa’s Data Laws vs GDPR | Data Protection & Compliance
+[ANALYZE     ] [54/426] Analyzed: Child and Youth Safety Online | United Nations
+[ANALYZE     ] [55/426] Analyzed: Child Online Protection | ITU COP Guidelines
+[ANALYZE     ] [56/426] Analyzed: 5rights - Building the digital world that young people deser
+[ANALYZE     ] [57/426] Analyzed: Common Sense
+[ANALYZE     ] [58/426] Analyzed: The Online Safety Act explained
+[ANALYZE     ] [59/426] Analyzed: Global Threat Assessment 2023: Assessing the scale and scope
+[ANALYZE     ] [60/426] Analyzed: Global Privacy Regulators Launch Enforcement Sweep Focused o
+[ANALYZE     ] [61/426] Analyzed: FTC Publishes Final COPPA Rule Amendments
+[ANALYZE     ] [62/426] Analyzed: What to Expect from US States on Child Online Safety in 2026
+[ANALYZE     ] [63/426] Analyzed: House version of Kids Online Safety Act ruffles Blumenthal, 
+[ANALYZE     ] [64/426] Analyzed: Congress’s Bipartisan Child Online Safety Coalition is Unrav
+[ANALYZE     ] [65/426] Analyzed: What to Know About the Kids Online Safety Act and Where It C
+[ANALYZE     ] [66/426] Analyzed: Online Safety Act: explainer - GOV.UK
+[ANALYZE     ] [67/426] Analyzed: Congress moves forward on kids online safety - The Verge
+[ANALYZE     ] [68/426] Analyzed: Markey outlines where US Senate stands with children's onlin
+[ANALYZE     ] [69/426] Analyzed: US House Subcommittee Advances 18 Child Online Safety Bills 
+[ANALYZE     ] [70/426] Analyzed: House subcommittee debates best way to protect children onli
+[ANALYZE     ] [71/426] Analyzed: Arkansas Advances Children and Teen Privacy Laws - Inside Pr
+[ANALYZE     ] [72/426] Analyzed: British Government Vows Changes to Toughen Children’s Online
+[ANALYZE     ] [73/426] Analyzed: Starmer pledges crackdown on 'addictive elements' of social 
+[ANALYZE     ] [74/426] Analyzed: Rethinking Online Safety for Children - The Regulatory Revie
+[ANALYZE     ] [75/426] Analyzed: Legislation seeks to better protect kids online - WSJM
+[ANALYZE     ] [76/426] Analyzed: Lawsuits Test New Legal Theories About What Causes Social Me
+[ANALYZE     ] [77/426] Analyzed: Germany eyes social media ban for kids - politico.eu
+[ANALYZE     ] [78/426] Analyzed: Virginia to enforce new law limiting kids’ social media time
+[ANALYZE     ] [79/426] Analyzed: French lawmakers approve ban on social media for kids under 
+[ANALYZE     ] [80/426] Analyzed: Virginia begins enforcing 1-hour social media cap for kids -
+[ANALYZE     ] [81/426] Analyzed: FTC workshop details age verification tools, regulatory effo
+[ANALYZE     ] [82/426] Analyzed: FTC push for age verification a ‘major landmark’ for spread 
+[ANALYZE     ] [83/426] Analyzed: FTC Publishes Updates to COPPA Rule - Latham & Watkins LLP
+[ANALYZE     ] [84/426] Analyzed: Children’s and Student Data Privacy Laws in the US - Reuters
+[ANALYZE     ] [85/426] Analyzed: New COPPA Rule to take effect in June - K-12 Dive
+[ANALYZE     ] [86/426] Analyzed: What to know about teen online safety as 1 in 5 teens experi
+[ANALYZE     ] [87/426] Analyzed: Usher and his sons launch "Carversations" - Instagram's new 
+[ANALYZE     ] [88/426] Analyzed: Online safety tips: Experts urge parents to address online s
+[ANALYZE     ] [89/426] Analyzed: Snapchat Makes Surprising Move to Improve Teen Online Safety
+[ANALYZE     ] [90/426] Analyzed: Protecting children online: What to expect in 2026 - Reed Sm
+[ANALYZE     ] [91/426] Analyzed: Data protection by design and by default - Information Commi
+[ANALYZE     ] [92/426] Analyzed: Dark Patterns, Children's Data and Corporate Fiduciary Risk 
+[ANALYZE     ] [93/426] Analyzed: The UK DUA Act’s Reform Pillars: Divergence from the EU GDPR
+[ANALYZE     ] [94/426] Analyzed: ICO fines Imgur for unlawful use of children's data - Lexolo
+[ANALYZE     ] [95/426] Analyzed: Meta CEO Mark Zuckerberg to face jury in landmark social med
+[ANALYZE     ] [96/426] Analyzed: Mark Zuckerberg said he reached out to Apple CEO Tim Cook to
+[ANALYZE     ] [97/426] Analyzed: Google and Meta face multiple trials over social media addic
+[ANALYZE     ] [98/426] Analyzed: Social media companies face legal reckoning over mental heal
+[ANALYZE     ] [99/426] Analyzed: Under oath, Meta's Zuckerberg showed why Big Tech can't poli
+[ANALYZE     ] [100/426] Analyzed: From Australia to Europe, countries move to curb children's 
+[ANALYZE     ] [101/426] Analyzed: UK Online Safety Act: Protection of Children Codes come into
+[ANALYZE     ] [102/426] Analyzed: Telecoms, Media & Internet Laws and Regulations Report 2026 
+[ANALYZE     ] [103/426] Analyzed: Protection of children enhanced by laws, courts - China Dail
+[ANALYZE     ] [104/426] Analyzed: Britain calls it safety. It is censorship - Al Jazeera
+[ANALYZE     ] [105/426] Analyzed: AI becoming ‘child sexual abuse machine’ adding to ‘dangerou
+[ANALYZE     ] [106/426] Analyzed: Australia has banned social media for kids under 16. How doe
+[ANALYZE     ] [107/426] Analyzed: How will bans on social media affect children? - Brookings
+[ANALYZE     ] [108/426] Analyzed: What Europe’s Digital Services Act Says About Age Assurance 
+[ANALYZE     ] [109/426] Analyzed: Social media still pushing suicide-related content to teens 
+[ANALYZE     ] [110/426] Analyzed: How do social media rules for under 16s differ around the wo
+[ANALYZE     ] [111/426] Analyzed: Global Efforts to Make a Safer and Better Internet for Child
+[ANALYZE     ] [112/426] Analyzed: Australia’s Social Media Ban: Is it Enough to Protect Childr
+[ANALYZE     ] [113/426] Analyzed: Too young to scroll? Why governments are cracking down on so
+[ANALYZE     ] [114/426] Analyzed: TikTok | Pros, Cons, Debate, Arguments, Social Media, Intern
+[ANALYZE     ] [115/426] Analyzed: What are the new UK online safety rules and how will age che
+[ANALYZE     ] [116/426] Analyzed: UK Online Safety Act 2023 - Reed Smith LLP
+[ANALYZE     ] [117/426] Analyzed: The Online Safety Act Has Nothing to Do With Child Safety an
+[ANALYZE     ] [118/426] Analyzed: Are new global age verification requirements creating a chil
+[ANALYZE     ] [119/426] Analyzed: The Future (and Past) of Child Online Safety Legislation: Wh
+[ANALYZE     ] [120/426] Analyzed: Global Privacy Watchlist - Mayer Brown
+[ANALYZE     ] [121/426] Analyzed: Inside Brazil's child online safety bill - IAPP
+[ANALYZE     ] [122/426] Analyzed: Brazil Passes Landmark Law to Protect Children Online - Huma
+[ANALYZE     ] [123/426] Analyzed: Children want to shape their rights in the digital world - o
+[ANALYZE     ] [124/426] Analyzed: UAE Introduces New Child Digital Safety Law - What Online Pl
+[ANALYZE     ] [125/426] Analyzed: UAE Child Digital Safety Law – Tighter Regulation for Digita
+[ANALYZE     ] [126/426] Analyzed: UAE issues landmark Child Digital Safety Law: Federal Decree
+[ANALYZE     ] [127/426] Analyzed: UAE’s Child Digital Safety Law: What Every Digital Platform 
+[ANALYZE     ] [128/426] Analyzed: UAE introduces new online restrictions with child safety leg
+[ANALYZE     ] [129/426] Analyzed: @AlboMP SHOULD CHILDREN UNDER 16 BE ABLE TO READ THE QUR'AN 
+[ANALYZE     ] [130/426] Analyzed: @DMBritain @Alexarmstrong @offgriddesigner @edthetechie @Ray
+[ANALYZE     ] [131/426] Analyzed: RT @YorkCityFC: Everyone at York City Football Club is shock
+[ANALYZE     ] [132/426] Analyzed: RT @museumsireland: @griptmedia This is the establishment th
+[ANALYZE     ] [133/426] Analyzed: RT @risktoriseDE: 🚨 Dex Screener Rockets 🚨 With an active 
+[ANALYZE     ] [134/426] Analyzed: RT @SpecialeLuca: Se tutti avessero sempre avuto la voglia e
+[ANALYZE     ] [135/426] Analyzed: @tuttosport È il sicario di Marotta per eccellenza Doveri, q
+[ANALYZE     ] [136/426] Analyzed: RT @AlboMP: Our social media ban is giving under-16s a safer
+[ANALYZE     ] [137/426] Analyzed: @r3tarddownunder @AlboMP Oh come on, you don’t really think 
+[ANALYZE     ] [138/426] Analyzed: Spalletti sei un grande allenatore quindi scappa dalla Juve 
+[ANALYZE     ] [139/426] Analyzed: Il girone di andata della Pool Promozione si chiude con il b
+[ANALYZE     ] [140/426] Analyzed: RT @YorkCityFC: Everyone at York City Football Club is shock
+[ANALYZE     ] [141/426] Analyzed: @4everpupi @Anto__rus Si ma l'obiettivo non è vincere la cop
+[ANALYZE     ] [142/426] Analyzed: @Anto__rus Non sei la sola Anche per me la Champions è magia
+[ANALYZE     ] [143/426] Analyzed: RT @museumsireland: @griptmedia This is the establishment th
+[ANALYZE     ] [144/426] Analyzed: RT @risktoriseDE: 🚨 Dex Screener Rockets 🚨 With an active 
+[ANALYZE     ] [145/426] Analyzed: RT @paddymacc1: I think this lunacy is on hold, but this is 
+[ANALYZE     ] [146/426] Analyzed: RT @Togetherdec: UNDER 16s SOCIAL MEDIA "BAN": Would almost 
+[ANALYZE     ] [147/426] Analyzed: RT @AlboMP: Our social media ban is giving under-16s a safer
+[ANALYZE     ] [148/426] Analyzed: UNDER 16s SOCIAL MEDIA "BAN": Would almost certainly require
+[ANALYZE     ] [149/426] Analyzed: RT @Togetherdec: UNDER 16s SOCIAL MEDIA "BAN": Would almost 
+[ANALYZE     ] [150/426] Analyzed: RT @AlboMP: Our social media ban is giving under-16s a safer
+[ANALYZE     ] [151/426] Analyzed: @biazzarro something something nate che la notte prima della
+[ANALYZE     ] [152/426] Analyzed: RT @Togetherdec: UNDER 16s SOCIAL MEDIA "BAN": Would almost 
+[ANALYZE     ] [153/426] Analyzed: RT @AlboMP: Our social media ban is giving under-16s a safer
+[ANALYZE     ] [154/426] Analyzed: 🚨 Dex Screener Rockets 🚨 With an active community, we were
+[ANALYZE     ] [155/426] Analyzed: Please refer to it by its actual name. Forced sex is Rape. A
+[ANALYZE     ] [156/426] Analyzed: RT @AlboMP: Our social media ban is giving under-16s a safer
+[ANALYZE     ] [157/426] Analyzed: RT @MickOKeeffe: The Irish government has quietly backed dow
+[ANALYZE     ] [158/426] Analyzed: RT @AlboMP: Our social media ban is giving under-16s a safer
+[ANALYZE     ] [159/426] Analyzed: @lusignolodikiev Speriamo se ne vada presto in PL a finire 1
+[ANALYZE     ] [160/426] Analyzed: A lot has been made in recent days about a potential social 
+[ANALYZE     ] [161/426] Analyzed: RT @Togetherdec: UNDER 16s SOCIAL MEDIA "BAN": Would almost 
+[ANALYZE     ] [162/426] Analyzed: RT @Togetherdec: UNDER 16s SOCIAL MEDIA "BAN": Would almost 
+[ANALYZE     ] [163/426] Analyzed: @FFrogghina1983 Sono d'accordo. Pensavo che uno dei tifosi g
+[ANALYZE     ] [164/426] Analyzed: RT @mattvanswol: 🚨#BREAKING: Birkdale Village, a popular sh
+[ANALYZE     ] [165/426] Analyzed: 🔵🔴 TONIGHT! The Vale travel to UXBRIDGE FC to play @FCSout
+[ANALYZE     ] [166/426] Analyzed: @paolo_il87 Domanda siamo sicuri che questo Artistico che è 
+[ANALYZE     ] [167/426] Analyzed: @JPeppp Mi aspetto che al primo episodio stile Atalanta in c
+[ANALYZE     ] [168/426] Analyzed: RT @HaverfordwestFC: It was great to see @HCAFCAcademy talen
+[ANALYZE     ] [169/426] Analyzed: RT @AlboMP: Our social media ban is giving under-16s a safer
+[ANALYZE     ] [170/426] Analyzed: @sh_zuuu81265 @KantInEastt Under 16 was valid
+[ANALYZE     ] [171/426] Analyzed: RT @Togetherdec: UNDER 16s SOCIAL MEDIA "BAN": Would almost 
+[ANALYZE     ] [172/426] Analyzed: Wow! What a day of rugby we have in store! Our Under 13s get
+[ANALYZE     ] [173/426] Analyzed: RT @Pirat_Nation: These are the countries moving to ban soci
+[ANALYZE     ] [174/426] Analyzed: Inizia domenica il Campionato Italiano e la Coppa Italia di 
+[ANALYZE     ] [175/426] Analyzed: Probabilmente sono l'unico interista che tiene più alla Cham
+[ANALYZE     ] [176/426] Analyzed: @r3tarddownunder @AlboMP Why do you know people under 16?
+[ANALYZE     ] [177/426] Analyzed: RT @DavQuinn: I think we need to be a bit concerned that the
+[ANALYZE     ] [178/426] Analyzed: Calcio: Onnisport in finale di Coppa, punto Hesperia nel rec
+[ANALYZE     ] [179/426] Analyzed: RT @Collin_G_Wood: Australian Under 16 Snapchat ❌️ Facebook 
+[ANALYZE     ] [180/426] Analyzed: @UKgovcomms @UKHSA how are Kate and wills kids still with th
+[ANALYZE     ] [181/426] Analyzed: Fanta 131 Il punto in classifica della nostra lega dopo il r
+[ANALYZE     ] [182/426] Analyzed: RT @YorkCityFC: Everyone at York City Football Club is shock
+[ANALYZE     ] [183/426] Analyzed: RT @mattvanswol: 🚨#BREAKING: Birkdale Village, a popular sh
+[ANALYZE     ] [184/426] Analyzed: RT @MickOKeeffe: The Irish government has quietly backed dow
+[ANALYZE     ] [185/426] Analyzed: @ciccio95185923 @SSD19801 La società poteva rifiutare (NON r
+[ANALYZE     ] [186/426] Analyzed: RT @LukePollard: Children deserve to be safe online. 🛡️📱 I
+[ANALYZE     ] [187/426] Analyzed: RT @NicoSchira: Franco #Baresi a Il Giornale: “Il #Milan rim
+[ANALYZE     ] [188/426] Analyzed: RT @YorkCityFC: Everyone at York City Football Club is shock
+[ANALYZE     ] [189/426] Analyzed: RT @nordicmodelnow: WHY IS THE UK GOVERNMENT RENEGING ON ITS
+[ANALYZE     ] [190/426] Analyzed: RT @YorkCityFC: Everyone at York City Football Club is shock
+[ANALYZE     ] [191/426] Analyzed: @FusatoRiccardo La Juve ha giocato giovedì con l'Atalanta in
+[ANALYZE     ] [192/426] Analyzed: @TeamYouTube yeah but I'm not under 16? I explained why!!!! 
+[ANALYZE     ] [193/426] Analyzed: RT @NE_MetroStars: MetroStars are excited to announce that J
+[ANALYZE     ] [194/426] Analyzed: RT @YorkCityFC: Everyone at York City Football Club is shock
+[ANALYZE     ] [195/426] Analyzed: RT @AlboMP: Our social media ban is giving under-16s a safer
+[ANALYZE     ] [196/426] Analyzed: RT @MickOKeeffe: The Irish government has quietly backed dow
+[ANALYZE     ] [197/426] Analyzed: @Moroccan_Factz @clashreport Buying US-debts, military goods
+[ANALYZE     ] [198/426] Analyzed: RT @AlboMP: Our social media ban is giving under-16s a safer
+[ANALYZE     ] [199/426] Analyzed: @JnglJourney @BowesChay That’s exactly what he said. That’s 
+[ANALYZE     ] [200/426] Analyzed: RT @Togetherdec: UNDER 16s SOCIAL MEDIA "BAN": Would almost 
+[ANALYZE     ] [201/426] Analyzed: Il programma delle semifinali di Coppa Italia https://t.co/E
+[ANALYZE     ] [202/426] Analyzed: RT @ShirebrookTwnFC: 𝐔𝐩 𝐍𝐞𝐱𝐭 | 𝐆𝐞𝐝𝐥𝐢𝐧𝐠 𝐌𝐢𝐧𝐞
+[ANALYZE     ] [203/426] Analyzed: RT @nordicmodelnow: WHY IS THE UK GOVERNMENT RENEGING ON ITS
+[ANALYZE     ] [204/426] Analyzed: RT @Togetherdec: UNDER 16s SOCIAL MEDIA "BAN": Would almost 
+[ANALYZE     ] [205/426] Analyzed: @reddyred7712 @wshfhdufursudh @Roblox COPPA does not require
+[ANALYZE     ] [206/426] Analyzed: VOLLEY | Rana Verona festeggia la Coppa Italia in Consiglio 
+[ANALYZE     ] [207/426] Analyzed: VOLLEY | Rana Verona festeggia la Coppa Italia in Consiglio 
+[ANALYZE     ] [208/426] Analyzed: RT @wideawake_media: All these people arguing in favour of u
+[ANALYZE     ] [209/426] Analyzed: @putino Perché Trump può fare saltare la coppa del mondo e l
+[ANALYZE     ] [210/426] Analyzed: RT @NicoSchira: Franco #Baresi a Il Giornale: “Il #Milan rim
+[ANALYZE     ] [211/426] Analyzed: RT @NicoSchira: Franco #Baresi a Il Giornale: “Il #Milan rim
+[ANALYZE     ] [212/426] Analyzed: @nordicmodelnow Wrong. The age of consent is 16. There is a 
+[ANALYZE     ] [213/426] Analyzed: RT @Togetherdec: Under 16s "social media &amp; VPN ban” = Di
+[ANALYZE     ] [214/426] Analyzed: @acmilan Abbiamo lasciato una coppa Italia col suo esonero, 
+[ANALYZE     ] [215/426] Analyzed: @LapoNero Tra l'altro nel gemellaggio Inter Como è previsto 
+[ANALYZE     ] [216/426] Analyzed: Sci alpino: ‘Le Ali del Pegaso’, il Consiglio regionale prem
+[ANALYZE     ] [217/426] Analyzed: RT @YorkCityFC: Everyone at York City Football Club is shock
+[ANALYZE     ] [218/426] Analyzed: RT @Togetherdec: UNDER 16s SOCIAL MEDIA "BAN": Would almost 
+[ANALYZE     ] [219/426] Analyzed: @Info_SerieA kalo gue beda id, pas final Coppa 2010 pas blio
+[ANALYZE     ] [220/426] Analyzed: RT @NicoSchira: Franco #Baresi a Il Giornale: “Il #Milan rim
+[ANALYZE     ] [221/426] Analyzed: India is reportedly considering a ban on social media access
+[ANALYZE     ] [222/426] Analyzed: @FinnishZoomer Anyone that isn't brown or under 16 shouldn't
+[ANALYZE     ] [223/426] Analyzed: RT @IndianInfoGuid: 🚨India govt is considering restricting 
+[ANALYZE     ] [224/426] Analyzed: RT @IndianInfoGuid: 🚨India govt is considering restricting 
+[ANALYZE     ] [225/426] Analyzed: For those mothers, father's who think that " social" media m
+[ANALYZE     ] [226/426] Analyzed: A 13-year-old mentioned during a casual Instagram conversati
+[ANALYZE     ] [227/426] Analyzed: @AlfNeumann @Cutmans_Curse @mathebulati I looked into this. 
+[ANALYZE     ] [228/426] Analyzed: Hey @instagram @Meta @MetaNewsroom , my account @nanda_kor1 
+[ANALYZE     ] [229/426] Analyzed: @nogojiggy court said he's not guilty and it's nothing to do
+[ANALYZE     ] [230/426] Analyzed: Gua lagi kesel sama rp, jadi ada rp facebook nge gay pake mu
+[ANALYZE     ] [231/426] Analyzed: Minor children semi naked... Jaggi deleted... https://t.co/O
+[ANALYZE     ] [232/426] Analyzed: @ProtectWithAVA , in a joint operation with @RPF_INDIA , res
+[ANALYZE     ] [233/426] Analyzed: Minor children semi naked 😲 https://t.co/Ok3qVJYEcp
+[ANALYZE     ] [234/426] Analyzed: @realitzei You have no idea how much I would love to see Ins
+[ANALYZE     ] [235/426] Analyzed: You have no idea how much I would love to see Instagram go d
+[ANALYZE     ] [236/426] Analyzed: IMPHAL POLICE NAB MAN IN MINOR SEXUAL ASSAULT CASE Facebook:
+[ANALYZE     ] [237/426] Analyzed: Everyone please be aware of this man He had many accounts on
+[ANALYZE     ] [238/426] Analyzed: (japanarts_corp IG Story) https://t.co/MCoAlrR3Bx 임윤찬 피아노 리사
+[ANALYZE     ] [239/426] Analyzed: @ButtonPusher_ @LongTimeHistory Dinah Marie Chollet was arre
+[ANALYZE     ] [240/426] Analyzed: #TRAFFICALERT Constable Deputies are on a minor crash near 1
+[ANALYZE     ] [241/426] Analyzed: See this Instagram post by @danny_minor https://t.co/avOM9gn
+[ANALYZE     ] [242/426] Analyzed: Repost it, Hindus.... for the Dalit girl In Burhanpur, Madhy
+[ANALYZE     ] [243/426] Analyzed: @imphany @VeginaDentata aunty was a minor, that’s why. all o
+[ANALYZE     ] [244/426] Analyzed: #TRAFFICALERT Constable Deputies are on a minor crash near 4
+[ANALYZE     ] [245/426] Analyzed: Visalia Police say a Hanford man has been arrested, accused 
+[ANALYZE     ] [246/426] Analyzed: Interesting divergence: Why is $META holding up despite the 
+[ANALYZE     ] [247/426] Analyzed: @GSPRushFan @LongTimeHistory Dinah Marie Chollet, 44, co-own
+[ANALYZE     ] [248/426] Analyzed: In his first time testifying about child safety in front of 
+[ANALYZE     ] [249/426] Analyzed: #TRAFFICALERT Constable Deputies are on a minor crash near 5
+[ANALYZE     ] [250/426] Analyzed: ALT LEFT PIPELINE Is for Groomers. MAP (minor attracted peop
+[ANALYZE     ] [251/426] Analyzed: @ShainV8 @Roblox_RTC @USATODAY @CountyofLA (1) I understand 
+[ANALYZE     ] [252/426] Analyzed: @sunsetlise @BlackveilVeil @boganintel According to reports 
+[ANALYZE     ] [253/426] Analyzed: Social media trial shows Meta’s child safety promises were h
+[ANALYZE     ] [254/426] Analyzed: West Virginia AG JB McCuskey filed a groundbreaking lawsuit 
+[ANALYZE     ] [255/426] Analyzed: Social media trial shows Meta’s child safety promises were h
+[ANALYZE     ] [256/426] Analyzed: A fitness influencer and former Marine has been indicted on 
+[ANALYZE     ] [257/426] Analyzed: See odd reason somehow and right on time of seconds your cou
+[ANALYZE     ] [258/426] Analyzed: #TRAFFICALERT Constable Deputies are on a minor crash near 1
+[ANALYZE     ] [259/426] Analyzed: @BGobannos @LongTimeHistory According to Summerville PD and 
+[ANALYZE     ] [260/426] Analyzed: @heptopod @QuantData Based on Feb 2026 reports, none of the 
+[ANALYZE     ] [261/426] Analyzed: Big tech can't police itself ; Zuck is heartless. Social med
+[ANALYZE     ] [262/426] Analyzed: 50个社媒成瘾而死去的孩子照片摆在法院门口，扎克伯格进去受审的那一刻，全美父母都在看… https://t.co/Izp
+[ANALYZE     ] [263/426] Analyzed: #TRAFFICALERT Constable Deputies are on a minor crash near 2
+[ANALYZE     ] [264/426] Analyzed: @2023ishere @LongTimeHistory Dinah Marie Chollet was arreste
+[ANALYZE     ] [265/426] Analyzed: Ofcom, the UK regulator, is extending the Online Safety Act 
+[ANALYZE     ] [266/426] Analyzed: 1. $META's +0.24% uptick suggests isolated resilience amid a
+[ANALYZE     ] [267/426] Analyzed: Social media trial shows Meta’s child safety promises were h
+[ANALYZE     ] [268/426] Analyzed: Market data suggests a mixed session. $META +0.24% and $TSLA
+[ANALYZE     ] [269/426] Analyzed: #TRAFFICALERT Constable Deputies are on a minor crash near 1
+[ANALYZE     ] [270/426] Analyzed: @policy_master @pooL_rM311_7221 Thanks for clarifying. Recen
+[ANALYZE     ] [271/426] Analyzed: Market data suggests a cautious tone despite limited moves i
+[ANALYZE     ] [272/426] Analyzed: market data suggests caution. $AAPL leads the decline at -1.
+[ANALYZE     ] [273/426] Analyzed: Market data suggests a mixed technical setup. $AMZN (-0.35%)
+[ANALYZE     ] [274/426] Analyzed: 🚨 ALERT: Broad market data suggests a pivot toward mature c
+[ANALYZE     ] [275/426] Analyzed: @teamspeak Don’t forget to oppose laws mandating IDs on the 
+[ANALYZE     ] [276/426] Analyzed: Season 4 Episode 70 of The Juco Editz Podcast with @jacksonb
+[ANALYZE     ] [277/426] Analyzed: Isn’t the boy a minor? Arrest the Karen https://t.co/KLMp01m
+[ANALYZE     ] [278/426] Analyzed: @chiefxmeta @DeepCutTheory @LowKeyUHTN Based on social media
+[ANALYZE     ] [279/426] Analyzed: 14:02 - Crash DE-Sussex-Seaford Dove Rd And King Rd Seaford 
+[ANALYZE     ] [280/426] Analyzed: @robotdonkey8 In recent developments, Meta faces lawsuits ov
+[ANALYZE     ] [281/426] Analyzed: @SlaveDigi @AdamKinzinger @Spoonamore Dinah Chollet was arre
+[ANALYZE     ] [282/426] Analyzed: I hope Olandria notices the age restriction and reaches out 
+[ANALYZE     ] [283/426] Analyzed: "Hi @Meta @facebook @MetaNewsroom, I have been waiting since
+[ANALYZE     ] [284/426] Analyzed: Yency Almonte is back with the Dodgers on a minor league dea
+[ANALYZE     ] [285/426] Analyzed: Wow.. a few minor -quite insignificant- embellishments aside
+[ANALYZE     ] [286/426] Analyzed: 🔥⛳🚨🇺🇸🇭🇹🔥 Lapolis Palm Beach arete Pastè Ayisyen Elco 
+[ANALYZE     ] [287/426] Analyzed: Mallory McMorrow running in Michigan,pushing for surveillanc
+[ANALYZE     ] [288/426] Analyzed: @Wvisioncreation If default camera photos with minor edits l
+[ANALYZE     ] [289/426] Analyzed: i hate a bitch that go straight to her instagram notes every
+[ANALYZE     ] [290/426] Analyzed: ♦️ Democrats plan to skip Donald Trump’s address to Congress
+[ANALYZE     ] [291/426] Analyzed: "Hi @Meta @facebook, I've already appealed, but my ID was re
+[ANALYZE     ] [292/426] Analyzed: Intro post!! Heya! I’m Jess and I often post my art. Any pro
+[ANALYZE     ] [293/426] Analyzed: Meta whistleblower Frances Haugen @franceshaugen says the co
+[ANALYZE     ] [294/426] Analyzed: Zuckerberg told LA jury that banning beauty filters felt "ov
+[ANALYZE     ] [295/426] Analyzed: Us trying to battle against the age restriction on mother’s 
+[ANALYZE     ] [296/426] Analyzed: Why Zuckerberg chose Instagram filters over expert warnings 
+[ANALYZE     ] [297/426] Analyzed: Mahikeng's adernt activist, Thato Molosankwe, reports on Fac
+[ANALYZE     ] [298/426] Analyzed: @FoxLaw10 Global Consciousness Project's ongoing experiments
+[ANALYZE     ] [299/426] Analyzed: @Mental_Institut @Samecali4lights @TheDynastyChad1 @ihyonyxx
+[ANALYZE     ] [300/426] Analyzed: @DrStefan33 @OwsWills Yea I get it pushed to me through Inst
+[ANALYZE     ] [301/426] Analyzed: In his first time testifying about child safety in front of 
+[ANALYZE     ] [302/426] Analyzed: Website is facing a minor issue right now. For orders/enquir
+[ANALYZE     ] [303/426] Analyzed: pushing since organic engagement is less likely due to age r
+[ANALYZE     ] [304/426] Analyzed: Sempre sul voto al referendum del prossimo marzo: Se voti SI
+[ANALYZE     ] [305/426] Analyzed: @HANDINO_ That ebute meta psychopath you stan is the fraudul
+[ANALYZE     ] [306/426] Analyzed: @pIaythebeat Halo kakk, ini lagi rame bngt di ch WA dan tikt
+[ANALYZE     ] [307/426] Analyzed: Dear Bihar Police, @bihar_police @SpKatihar I am receiving t
+[ANALYZE     ] [308/426] Analyzed: @_Saffron_Girl_ Andhbhakts, yeah we demolished a Mazhar/ Dur
+[ANALYZE     ] [309/426] Analyzed: My daughter’s Instagram account: 👉 https://t.co/XHcMyDSAbW 
+[ANALYZE     ] [310/426] Analyzed: Mark Zuckerberg has admitted that Meta moved too slowly in t
+[ANALYZE     ] [311/426] Analyzed: My daughter’s Instagram account: 👉 https://t.co/XHcMyDSAbW�
+[ANALYZE     ] [312/426] Analyzed: @Recon1_ZA @AvainAfrica Transcript: US Senate Hearing on 'Ex
+[ANALYZE     ] [313/426] Analyzed: It is things like this, endless community notes - and the pu
+[ANALYZE     ] [314/426] Analyzed: Shiv Sena (UBT) protests in Jammu over Bishnah minor r*pe ca
+[ANALYZE     ] [315/426] Analyzed: @codyschneiderxx Cool process but this (minor creative varia
+[ANALYZE     ] [316/426] Analyzed: @edd1ct @Currentreport1 Australia's social media age restric
+[ANALYZE     ] [317/426] Analyzed: https://t.co/R1YaBDsg4I. Makes sense
+[ANALYZE     ] [318/426] Analyzed: Burhanpur, Madhya Pradesh:- ​Sheikh Arshad, son of BJP counc
+[ANALYZE     ] [319/426] Analyzed: Grooming guys alert! Hope @DelhiPolice takes action on these
+[ANALYZE     ] [320/426] Analyzed: Mark Zuckerberg defended Meta’s child safety handling in tri
+[ANALYZE     ] [321/426] Analyzed: Hndu Womb on Target Sheikh Arshad son of Sheikh Shakir, hara
+[ANALYZE     ] [322/426] Analyzed: Fake contrition Some former Meta employees have said that th
+[ANALYZE     ] [323/426] Analyzed: @Boomerjeff @tracegallagher But how would FB know the age of
+[ANALYZE     ] [324/426] Analyzed: Pershing Square (Bill Ackman) Q4 2025 13F — Key Moves ➕ Adde
+[ANALYZE     ] [325/426] Analyzed: @BBCNews We dont need online safety act..children should be 
+[ANALYZE     ] [326/426] Analyzed: @Sir_Rainbows @Alatreon22 @Tomycj1 @catwithptsd @SpriggsyUK 
+[ANALYZE     ] [327/426] Analyzed: @boladeakinfenwa @realYusufTukur In the UK, the Online Safet
+[ANALYZE     ] [328/426] Analyzed: The Online Safety Act is a threat to free speech. Sold as do
+[ANALYZE     ] [329/426] Analyzed: @PaperTiger64 @statelinx It's nothing but Internet Phishing 
+[ANALYZE     ] [330/426] Analyzed: @guychristensen_ It's an Internet Phishing scheme being fram
+[ANALYZE     ] [331/426] Analyzed: KOSA endangers children AND adults. Supporting that law is t
+[ANALYZE     ] [332/426] Analyzed: KOSA attacks free speech in the name of “Child Safety.” The 
+[ANALYZE     ] [333/426] Analyzed: @OverclockersUK Online safety act is quite literally represe
+[ANALYZE     ] [334/426] Analyzed: @ResistanceSean They talk about candidates like items on a m
+[ANALYZE     ] [335/426] Analyzed: Radicals Are at the Door - National Review https://t.co/uHlg
+[ANALYZE     ] [336/426] Analyzed: Radicals Are at the Door - National Review “NYT -ideology “Z
+[ANALYZE     ] [337/426] Analyzed: Cleary Trump believes we are idiots equating free speech wit
+[ANALYZE     ] [338/426] Analyzed: Social Media and Children's Safety: Kids Online Safety Act N
+[ANALYZE     ] [339/426] Analyzed: @saruei This may be X’s attempt to comply with the EU’s Digi
+[ANALYZE     ] [340/426] Analyzed: @NYCPublicPolicy @HunterBoone @ReynosoBrooklyn seriously. th
+[ANALYZE     ] [341/426] Analyzed: This is total bullshit. Ask yourself who is pushing this Kid
+[ANALYZE     ] [342/426] Analyzed: @Jerry5424 @ChibiReviews Who does? We all know the greedy co
+[ANALYZE     ] [343/426] Analyzed: 👨🏻‍💻Day 48/100 ~💻Children Sum in a Binary Tree. ~💻2236.
+[ANALYZE     ] [344/426] Analyzed: @NYCMayor You and the DSA are sick perverts that wants to se
+[ANALYZE     ] [345/426] Analyzed: The Online Safety Act so badly misunderstands what the Inter
+[ANALYZE     ] [346/426] Analyzed: @NYCMayor No, stupid. @nyulangone follows #science. It is fo
+[ANALYZE     ] [347/426] Analyzed: hi online grooming survivor here. KOSA is not for protecting
+[ANALYZE     ] [348/426] Analyzed: @TiceRichard Those who are against the Online Safety Act whi
+[ANALYZE     ] [349/426] Analyzed: @claireforny @nyulangone @nycDSA The Transhumanist Working G
+[ANALYZE     ] [350/426] Analyzed: On Monday, I was invited to film a 25-minute-long panel disc
+[ANALYZE     ] [351/426] Analyzed: @GuidoFawkes Good! Because the Online Safety Act was never t
+[ANALYZE     ] [352/426] Analyzed: @AutismCapital It’s worse Autism! As a European Macron, Sanc
+[ANALYZE     ] [353/426] Analyzed: 🎉 50 DAYS DONE in 2026! 🎉 Day 50/180 ✅ Solved: 2928. Distr
+[ANALYZE     ] [354/426] Analyzed: Are Macron, Sanchez, 🇬🇷 Mitsotakis Merz, &amp; Starmer und
+[ANALYZE     ] [355/426] Analyzed: @chrisbulski @mitchellvii Based on recent reports, Europe do
+[ANALYZE     ] [356/426] Analyzed: Day 39/365 of my DSA journey. Solved Assign Cookies, applyin
+[ANALYZE     ] [357/426] Analyzed: @KellyMorrisonMN Your little 'protest' lost and 3, 364 child
+[ANALYZE     ] [358/426] Analyzed: @netleaf2 @Jmax528 @erbanku @MikeMumbelz @MonitorWarnow @Cur
+[ANALYZE     ] [359/426] Analyzed: @grok @Jmax528 @erbanku @MikeMumbelz @MonitorWarnow @Current
+[ANALYZE     ] [360/426] Analyzed: @IndiaWilloughby @lillywinter10 @EHRC @SexMattersOrg @bphill
+[ANALYZE     ] [361/426] Analyzed: @Keir_Starmer Then repeal the "Online 'Safety' Act". Forcing
+[ANALYZE     ] [362/426] Analyzed: Just another nail in democracy that's why governments are do
+[ANALYZE     ] [363/426] Analyzed: @MarshaBlackburn @VP 2 People Who Pass KOSA In Their Countri
+[ANALYZE     ] [364/426] Analyzed: EU: Commission opens investigation into SHEIN under the Digi
+[ANALYZE     ] [365/426] Analyzed: @MarshaBlackburn @VP It's Online Safety Act Which In UK (Sta
+[ANALYZE     ] [366/426] Analyzed: @countersources @disclosetv the way the implement it, which 
+[ANALYZE     ] [367/426] Analyzed: @MarshaBlackburn @VP I call bullshit on the 90% support Mars
+[ANALYZE     ] [368/426] Analyzed: @gildedcage66 @labourlewis @LizWebsterSBF I fear it's furthe
+[ANALYZE     ] [369/426] Analyzed: F**k your online safety act smoke scream , to protect our ch
+[ANALYZE     ] [370/426] Analyzed: @carylkauffman @TheRickyDavila No, Fetterman was an asshole 
+[ANALYZE     ] [371/426] Analyzed: @pepesgrandma But but but its all about protecting children 
+[ANALYZE     ] [372/426] Analyzed: @toadmeister @Telegraph Henry VIII Powers = Starmer’s God Mo
+[ANALYZE     ] [373/426] Analyzed: Think of the children excuse doesn't work for us so give up 
+[ANALYZE     ] [374/426] Analyzed: @DeportFAFO @MarshaBlackburn @VP How about not letting your 
+[ANALYZE     ] [375/426] Analyzed: @MarshaBlackburn KOSA capitulates to woke censorship. The ov
+[ANALYZE     ] [376/426] Analyzed: What makes them not conservatives? KOSA will require adults 
+[ANALYZE     ] [377/426] Analyzed: @Rafa_Mangual @ACSNYC Let’s prove the the DSA made a mistake
+[ANALYZE     ] [378/426] Analyzed: Today, Zuckerberg followed his playbook of denial and deceit
+[ANALYZE     ] [379/426] Analyzed: These restrictions already exist within the scope of existin
+[ANALYZE     ] [380/426] Analyzed: Evidence that KOSA Kids Online *Safety* Act violates the 4th
+[ANALYZE     ] [381/426] Analyzed: @MarshaBlackburn @VP You silly fool this KOSA doesn't protec
+[ANALYZE     ] [382/426] Analyzed: @Xenoimpulse they’re trying to shove KOSA through again righ
+[ANALYZE     ] [383/426] Analyzed: The Online Safety Act in the UK is a threat to free speech. 
+[ANALYZE     ] [384/426] Analyzed: @MarshaBlackburn @VP KOSA is the same cancerous law passed i
+[ANALYZE     ] [385/426] Analyzed: @CTCentinal These kids never had as many issues before inter
+[ANALYZE     ] [386/426] Analyzed: Parents: This is what the DSA Party teachers are doing with 
+[ANALYZE     ] [387/426] Analyzed: @KemiBadenoch @TomCruise Opposing the Online Safety Act is t
+[ANALYZE     ] [388/426] Analyzed: @toadmeister @Telegraph Online Safety Act for children under
+[ANALYZE     ] [389/426] Analyzed: @RupertLowe10 It's so refreshing to hear common sense. I hop
+[ANALYZE     ] [390/426] Analyzed: @MarshaBlackburn @VP KOSA will NEVER protect children and it
+[ANALYZE     ] [391/426] Analyzed: Big Tech should never have more power over our kids than par
+[ANALYZE     ] [392/426] Analyzed: @amuse DSA &amp; NEA must be identified as communist groups.
+[ANALYZE     ] [393/426] Analyzed: @jaycaspiankang Are we talking about the Ro Khanna that is a
+[ANALYZE     ] [394/426] Analyzed: The Online Safety Act was never about protecting children, i
+[ANALYZE     ] [395/426] Analyzed: @MountainTechDad @amuse Starmer's stated reasons for speech 
+[ANALYZE     ] [396/426] Analyzed: @BLkhoih96132 As i was saying before the motherfucking cocks
+[ANALYZE     ] [397/426] Analyzed: @fairplayforkids are just nothing but a group of cocksuckers
+[ANALYZE     ] [398/426] Analyzed: @fairplayforkids You stupid motherfuckers look like you'll n
+[ANALYZE     ] [399/426] Analyzed: I'm urging Congressional leadership to act on behalf of Okla
+[ANALYZE     ] [400/426] Analyzed: 🛡️ UK treats chatbots like platforms to shield kids online,
+[ANALYZE     ] [401/426] Analyzed: The Online Safety Act is a threat to free speech. Sold as do
+[ANALYZE     ] [402/426] Analyzed: @MentallyDivine lol wasn’t mismanaged by Adams!! It was from
+[ANALYZE     ] [403/426] Analyzed: @Osint613 He's obsessed with censorship, he pushed hard the 
+[ANALYZE     ] [404/426] Analyzed: Under the excuse of protecting kids Starmer is employing dra
+[ANALYZE     ] [405/426] Analyzed: Following last month’s House of Lords push to restrict child
+[ANALYZE     ] [406/426] Analyzed: 'Starmer has exposed the lie at the heart of the Online Safe
+[ANALYZE     ] [407/426] Analyzed: @lukejcr Also wants to get rid of the online safety act putt
+[ANALYZE     ] [408/426] Analyzed: feeds Under the DSA, fines could reach 6% of global turnover
+[ANALYZE     ] [409/426] Analyzed: 🔥Day 60 of Problem Solving ✅Heap Extraction + heapifyDown →
+[ANALYZE     ] [410/426] Analyzed: In Uk as i won't show them ID, I am not allowed to see sewag
+[ANALYZE     ] [411/426] Analyzed: @luxeprogressive Ro is one of the biggest proponents of KOSA
+[ANALYZE     ] [412/426] Analyzed: @MarshaBlackburn @VP Thank you for leading the charge on KOS
+[ANALYZE     ] [413/426] Analyzed: @BRICSinfo And throw Ursula, starmer, Sanchez and co. In, th
+[ANALYZE     ] [414/426] Analyzed: @LostTman1093 @Harvard04295809 @ChibiReviews Again, falls ar
+[ANALYZE     ] [415/426] Analyzed: @MarshaBlackburn @VP Our children aren't data points for Sil
+[ANALYZE     ] [416/426] Analyzed: @MarshaBlackburn @VP The Kids Online Safety Act (KOSA) highl
+[ANALYZE     ] [417/426] Analyzed: @ForkliftTez @wideawake_media Those who enjoy kiddie porn an
+[ANALYZE     ] [418/426] Analyzed: The UK government says it will tighten how the Online Safety
+[ANALYZE     ] [419/426] Analyzed: @MischiefMa77752 @PrometheanActn Unfortunately his son Alex 
+[ANALYZE     ] [420/426] Analyzed: @vinibarbosabr the pattern is always the same: propose surve
+[ANALYZE     ] [421/426] Analyzed: @MinnesotaDFL as if you have power of some sort? Your party 
+[ANALYZE     ] [422/426] Analyzed: @AOC Why is it that none of you ever makes comparatively acc
+[ANALYZE     ] [423/426] Analyzed: @Precedent_Vice @dbl_mp1 KOSA (Kids Online Safety Act) and A
+[ANALYZE     ] [424/426] Analyzed: On Feb. 17, TPA's @davidbmcgarry testified before Georgia la
+[ANALYZE     ] [425/426] Analyzed: @RBryan275 @thekognitive @KenyanSays Data localization in th
+[ANALYZE     ] [426/426] Analyzed: @Angie_RejoinEU @Keir_Starmer Australia's under-16 social me
+[ANALYZE_DONE] 0 relevant items found out of 426
+[PERSIST     ] Persisting 0 items...
+[DONE        ] Pipeline complete: 0 new, 0 updated, 0 duplicate
+
+=== Pipeline Results ===
+  Run ID:        2
+  Items crawled:  426
+  Items analyzed: 426
+  Relevant:       0
+  New:            0
+  Updated:        0
+  Duplicate:      0
+  Duration:       99.8s
+
+Done.

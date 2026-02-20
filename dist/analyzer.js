@@ -8,6 +8,7 @@ exports.analyzeItem = analyzeItem;
 exports.analyzeItems = analyzeItems;
 const MINIMAX_API_URL = "https://api.minimax.io/anthropic/v1/messages";
 const MINIMAX_MODEL = "MiniMax-M2.5";
+let minimaxAuthFailed = false;
 const ANALYSIS_PROMPT = `You are a regulatory intelligence analyst specializing in teen online safety laws affecting Meta (Facebook, Instagram, WhatsApp, Threads, Messenger).
 
 Analyze the following crawled text and determine:
@@ -69,6 +70,51 @@ const validStages = new Set([
     "enacted", "effective", "amended", "withdrawn", "rejected",
 ]);
 const validAgeBrackets = new Set(["13-15", "16-18", "both"]);
+function inferStageFromText(text) {
+    const lower = text.toLowerCase();
+    if (/effective|in force|commenced/.test(lower))
+        return "effective";
+    if (/enacted|signed into law|promulgated/.test(lower))
+        return "enacted";
+    if (/passed|approved|adopted/.test(lower))
+        return "passed";
+    if (/amend|amended|revision/.test(lower))
+        return "amended";
+    if (/committee|hearing|consultation/.test(lower))
+        return "committee_review";
+    if (/introduced|filed|bill/.test(lower))
+        return "introduced";
+    return "proposed";
+}
+function buildFallbackAnalysis(item) {
+    const fullText = `${item.title}\n${item.text}`.toLowerCase();
+    const hasChildSignal = /(child|children|teen|minor|under\s*1[368]|youth|coppa)/.test(fullText);
+    const hasRegulatorySignal = /(regulation|law|bill|legislation|act|guideline|compliance|dsa|kosa|online safety|age verification|parental consent|enforcement|commission|parliament|senate|congress)/.test(fullText);
+    const relevant = hasChildSignal && hasRegulatorySignal;
+    if (!relevant) {
+        return { relevant: false };
+    }
+    const summary = item.text.replace(/\s+/g, " ").slice(0, 800);
+    return {
+        relevant: true,
+        title: item.title.slice(0, 500),
+        jurisdiction: item.source.jurisdictionCountry,
+        jurisdictionState: item.source.jurisdictionState ?? null,
+        stage: inferStageFromText(fullText),
+        ageBracket: /(under\s*1[356]|13-15|under\s*16)/.test(fullText) ? "13-15" : "both",
+        affectedProducts: ["Facebook", "Instagram", "WhatsApp"],
+        summary,
+        businessImpact: "Potential child-safety compliance impact requiring legal and policy review.",
+        requiredSolutions: ["Policy review", "Age-assurance controls", "Regulatory monitoring"],
+        competitorResponses: [],
+        impactScore: 3,
+        likelihoodScore: 3,
+        confidenceScore: 2,
+        chiliScore: 3,
+        effectiveDate: null,
+        publishedDate: null,
+    };
+}
 /** Call MiniMax M2.5 API */
 async function callMiniMax(text, apiKey) {
     const controller = new AbortController();
@@ -78,6 +124,7 @@ async function callMiniMax(text, apiKey) {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
+                Authorization: `Bearer ${apiKey}`,
                 "x-api-key": apiKey,
                 "anthropic-version": "2023-06-01",
             },
@@ -134,6 +181,9 @@ function parseLlmResponse(raw) {
  * Returns null if the API key is missing or the call fails.
  */
 async function analyzeItem(item, apiKey) {
+    if (minimaxAuthFailed) {
+        return buildFallbackAnalysis(item);
+    }
     try {
         const inputText = `Source: ${item.source.name}\nURL: ${item.url}\nTitle: ${item.title}\n\n${item.text}`;
         const raw = await callMiniMax(inputText, apiKey);
@@ -173,8 +223,11 @@ async function analyzeItem(item, apiKey) {
     }
     catch (error) {
         const message = error instanceof Error ? error.message : String(error);
+        if (/\b401\b|authentication_error|login fail/i.test(message)) {
+            minimaxAuthFailed = true;
+        }
         console.warn(`[analyzer] Analysis failed for "${item.title}": ${message}`);
-        return null;
+        return buildFallbackAnalysis(item);
     }
 }
 /**

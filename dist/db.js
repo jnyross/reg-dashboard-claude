@@ -228,9 +228,9 @@ function upsertEvent(db, input) {
 }
 /** Ensure a source exists in the database, return its ID */
 function ensureSource(db, source) {
-    const existing = db.prepare("SELECT id FROM sources WHERE name = ?").get(source.name);
+    const existing = db.prepare("SELECT id FROM sources WHERE name = ? OR url = ? LIMIT 1").get(source.name, source.url);
     if (existing) {
-        db.prepare("UPDATE sources SET reliability_tier = ?, last_crawled_at = ? WHERE id = ?").run(source.reliabilityTier, new Date().toISOString(), existing.id);
+        db.prepare("UPDATE sources SET name = ?, url = ?, authority_type = ?, jurisdiction = ?, reliability_tier = ?, last_crawled_at = ? WHERE id = ?").run(source.name, source.url, source.authorityType, source.jurisdiction, source.reliabilityTier, new Date().toISOString(), existing.id);
         return existing.id;
     }
     const result = db
