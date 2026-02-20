@@ -36,7 +36,7 @@ export const twitterSearchSources: RegistrySource[] = [
     searchKeywords: ["under 16", "COPPA", "age verification"],
     description: "X recent search for under-16 and COPPA regulatory updates",
     twitterQuery:
-      '"under 16" OR "under 16s" OR COPPA OR "age verification" (regulation OR law OR bill OR legislation) -is:retweet',
+      '"under 16" OR "under 16s" OR COPPA OR "age verification" (regulation OR law OR bill) -is:retweet',
   },
   {
     name: "X Search — Meta Child Safety",
@@ -49,7 +49,7 @@ export const twitterSearchSources: RegistrySource[] = [
     searchKeywords: ["Meta", "Instagram", "child safety"],
     description: "X recent search for Meta/Facebook/Instagram/WhatsApp child safety and privacy updates",
     twitterQuery:
-      '(Meta OR Facebook OR Instagram OR WhatsApp) ("child safety" OR "children\'s privacy" OR "minor" OR "age restriction") -is:retweet',
+      '(Meta OR Facebook OR Instagram) ("child safety" OR "children\'s privacy" OR "minor") -is:retweet',
   },
   {
     name: "X Search — DSA / OSA / KOSA",
@@ -62,7 +62,7 @@ export const twitterSearchSources: RegistrySource[] = [
     searchKeywords: ["DSA", "Online Safety Act", "KOSA"],
     description: "X recent search for DSA/OSA/KOSA updates related to minors",
     twitterQuery:
-      '("Digital Services Act" OR DSA OR "Online Safety Act" OR "KOSA") (children OR minors OR teens) -is:retweet',
+      '("Digital Services Act" OR DSA OR "Online Safety Act" OR "KOSA") (children OR minors) -is:retweet',
   },
   {
     name: "X Search — TikTok/Snap/YouTube Compliance",
@@ -75,7 +75,7 @@ export const twitterSearchSources: RegistrySource[] = [
     searchKeywords: ["TikTok", "Snapchat", "YouTube", "compliance"],
     description: "X recent search for platform age verification and child-protection compliance",
     twitterQuery:
-      '(TikTok OR Snapchat OR YouTube) ("age verification" OR "parental consent" OR "child protection") compliance -is:retweet',
+      '(TikTok OR Snapchat OR YouTube) ("age verification" OR "parental consent") compliance -is:retweet',
   },
 ];
 

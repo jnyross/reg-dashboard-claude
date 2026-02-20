@@ -3,77 +3,254 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Global Teen Regulation Dashboard</title>
+  <title>Global Teen Regulation Intelligence</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div id="error-banner" class="error-banner hidden">
-    <span id="error-message"></span>
-    <button onclick="hideError()">Dismiss</button>
-  </div>
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
 
-  <header>
-    <div class="header-content">
-      <h1>Global Teen (13-18) Regulation Dashboard</h1>
-      <div class="header-meta">
-        <p class="last-updated">Last updated: <span id="last-updated">Loading...</span></p>
-        <p class="last-crawled">Last crawled: <span id="last-crawled">Never</span></p>
-        <button id="crawl-btn" class="btn-crawl" onclick="triggerCrawl()">Run Crawl</button>
+  <header class="app-header">
+    <div class="header-top">
+      <div>
+        <h1>Global Teen Regulation Intelligence</h1>
+        <p class="subtitle">Under-16 and teen online safety monitoring platform</p>
+      </div>
+      <div class="header-actions">
+        <button id="dark-mode-toggle" class="btn btn-secondary" aria-label="Toggle dark mode">🌙 Dark</button>
+        <button id="crawl-btn" class="btn btn-success">Run Crawl</button>
       </div>
     </div>
+    <div class="meta-row">
+      <span>Last updated: <strong id="last-updated">Loading…</strong></span>
+      <span>Last crawled: <strong id="last-crawled">Never</strong></span>
+      <span id="keyboard-hint">Shortcuts: <kbd>/</kbd> search · <kbd>d</kbd> dark mode · <kbd>g</kbd> dashboard</span>
+    </div>
+
+    <nav class="tabs" aria-label="Main sections">
+      <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+      <button class="tab-btn" data-tab="events">Events</button>
+      <button class="tab-btn" data-tab="competitors">Competitors</button>
+      <button class="tab-btn" data-tab="reports">Reports</button>
+      <button class="tab-btn" data-tab="alerts">Alerts</button>
+    </nav>
   </header>
 
   <main>
-    <section class="brief-section">
-      <h2>Priority Briefing</h2>
-      <div id="brief-container" class="brief-grid">
-        <div class="loading">Loading brief...</div>
+    <section class="tab-panel active" data-panel="dashboard">
+      <div class="stat-grid" id="stats-grid">
+        <article class="stat-card"><h3>Total Events</h3><p id="stat-total">-</p></article>
+        <article class="stat-card"><h3>Avg Risk</h3><p id="stat-risk">-</p></article>
+        <article class="stat-card"><h3>Top Jurisdiction</h3><p id="stat-jurisdiction">-</p></article>
+        <article class="stat-card"><h3>Newest Event</h3><p id="stat-newest">-</p></article>
       </div>
+
+      <div class="dashboard-grid">
+        <article class="card">
+          <div class="card-header"><h2>Risk Heatmap</h2></div>
+          <div id="heatmap-grid" class="heatmap-grid"></div>
+        </article>
+
+        <article class="card">
+          <div class="card-header"><h2>Stage Pipeline</h2></div>
+          <div id="pipeline-chart" class="pipeline-chart"></div>
+        </article>
+
+        <article class="card">
+          <div class="card-header"><h2>Trend Chart</h2></div>
+          <svg id="trend-chart" class="trend-chart" viewBox="0 0 520 240" preserveAspectRatio="none"></svg>
+        </article>
+
+        <article class="card">
+          <div class="card-header"><h2>World Map Risk View</h2></div>
+          <div id="world-map" class="world-map" aria-label="Interactive world risk map"></div>
+        </article>
+      </div>
+
+      <article class="card">
+        <div class="card-header">
+          <h2>Priority Briefing</h2>
+          <button id="refresh-brief" class="btn btn-secondary">Refresh</button>
+        </div>
+        <div id="brief-container" class="brief-grid"></div>
+      </article>
+
+      <article class="card">
+        <div class="card-header"><h2>In-App Notifications</h2></div>
+        <div id="notification-list" class="notification-list"></div>
+      </article>
     </section>
 
-    <section class="events-section">
-      <div class="section-header">
-        <h2>All Regulation Events</h2>
-        <div class="filters">
-          <div class="filter-group">
-            <label for="jurisdiction-filter">Jurisdiction:</label>
-            <select id="jurisdiction-filter">
-              <option value="">All Jurisdictions</option>
-            </select>
+    <section class="tab-panel" data-panel="events">
+      <article class="card">
+        <div class="card-header">
+          <h2>Search & Discovery</h2>
+          <div class="actions-inline">
+            <button id="save-search-btn" class="btn btn-secondary">Save Search</button>
+            <button id="export-csv-btn" class="btn btn-secondary">Export CSV</button>
+            <button id="export-pdf-btn" class="btn btn-secondary">Export PDF</button>
           </div>
-          <div class="filter-group">
-            <label for="age-bracket-filter">Age Bracket:</label>
+        </div>
+
+        <div class="filters-grid">
+          <label>Search
+            <input id="search-input" type="search" placeholder="Title, summary, business impact…" />
+          </label>
+
+          <label>Jurisdictions (multi-select)
+            <select id="jurisdiction-filter" multiple size="4"></select>
+          </label>
+
+          <label>Stages (multi-select)
+            <select id="stage-filter" multiple size="4">
+              <option value="proposed">Proposed</option>
+              <option value="introduced">Introduced</option>
+              <option value="committee_review">Committee Review</option>
+              <option value="passed">Passed</option>
+              <option value="enacted">Enacted</option>
+              <option value="effective">Effective</option>
+              <option value="amended">Amended</option>
+              <option value="withdrawn">Withdrawn</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </label>
+
+          <label>Age Bracket
             <select id="age-bracket-filter">
-              <option value="">All Ages</option>
-              <option value="13-15">13-15 (Early Teen)</option>
-              <option value="16-18">16-18 (Late Teen)</option>
-              <option value="both">Both (13-18)</option>
+              <option value="">All</option>
+              <option value="13-15">13-15</option>
+              <option value="16-18">16-18</option>
+              <option value="both">13-18</option>
             </select>
-          </div>
-          <div class="filter-group">
-            <label for="min-risk-filter">Min Risk:</label>
-            <select id="min-risk-filter">
-              <option value="">Any</option>
+          </label>
+
+          <label>Date From
+            <input id="from-date" type="date" />
+          </label>
+
+          <label>Date To
+            <input id="to-date" type="date" />
+          </label>
+
+          <label>Min Risk
+            <input id="min-risk" type="range" min="1" max="5" value="1" />
+            <span id="min-risk-value">1</span>
+          </label>
+
+          <label>Max Risk
+            <input id="max-risk" type="range" min="1" max="5" value="5" />
+            <span id="max-risk-value">5</span>
+          </label>
+
+          <label>Sort By
+            <select id="sort-by">
+              <option value="recently_updated">Recently Updated</option>
+              <option value="date">Date</option>
+              <option value="risk">Risk</option>
+              <option value="jurisdiction">Jurisdiction</option>
+              <option value="stage">Stage</option>
+            </select>
+          </label>
+
+          <label>Direction
+            <select id="sort-dir">
+              <option value="desc">Descending</option>
+              <option value="asc">Ascending</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="actions-inline">
+          <button id="apply-filters-btn" class="btn btn-primary">Apply Filters</button>
+          <button id="clear-filters-btn" class="btn btn-secondary">Clear</button>
+          <label>Saved Searches
+            <select id="saved-searches-select">
+              <option value="">Select saved search</option>
+            </select>
+          </label>
+          <button id="delete-saved-search-btn" class="btn btn-secondary">Delete Saved</button>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card-header"><h2>Event Results</h2></div>
+        <div id="events-container"></div>
+        <div class="pagination" id="pagination"></div>
+      </article>
+    </section>
+
+    <section class="tab-panel" data-panel="competitors">
+      <article class="card">
+        <div class="card-header"><h2>Competitor Intelligence Overview</h2></div>
+        <div id="competitor-table"></div>
+      </article>
+
+      <article class="card">
+        <div class="card-header"><h2>Competitor Timeline</h2></div>
+        <svg id="competitor-timeline" class="trend-chart" viewBox="0 0 520 240" preserveAspectRatio="none"></svg>
+      </article>
+    </section>
+
+    <section class="tab-panel" data-panel="reports">
+      <article class="card">
+        <div class="card-header"><h2>Reporting Center</h2></div>
+        <div class="reports-grid">
+          <button id="download-exec-brief" class="btn btn-primary">Download Executive Brief (PDF)</button>
+          <button id="load-trend-report" class="btn btn-secondary">Load Trend Analysis</button>
+          <label>Jurisdiction Deep Dive
+            <select id="jurisdiction-report-select"></select>
+          </label>
+          <button id="load-jurisdiction-report" class="btn btn-secondary">Load Deep Dive</button>
+        </div>
+        <pre id="report-output" class="report-output"></pre>
+      </article>
+    </section>
+
+    <section class="tab-panel" data-panel="alerts">
+      <article class="card">
+        <div class="card-header"><h2>Alert Subscriptions</h2></div>
+        <div class="alerts-grid">
+          <label>Email
+            <input id="alert-email" type="email" placeholder="analyst@company.com" />
+          </label>
+          <label>Webhook URL
+            <input id="alert-webhook" type="url" placeholder="https://hooks.slack.com/services/..." />
+          </label>
+          <label>Frequency
+            <select id="alert-frequency">
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+            </select>
+          </label>
+          <label>Min Chili
+            <select id="alert-min-chili">
               <option value="1">1+</option>
               <option value="2">2+</option>
               <option value="3">3+</option>
-              <option value="4">4+</option>
+              <option value="4" selected>4+</option>
               <option value="5">5</option>
             </select>
-          </div>
-          <button onclick="applyFilters()" class="btn-primary">Apply Filters</button>
-          <button onclick="clearFilters()" class="btn-secondary">Clear</button>
+          </label>
         </div>
-      </div>
-
-      <div id="events-container">
-        <div class="loading">Loading events...</div>
-      </div>
-
-      <div class="pagination" id="pagination">
-      </div>
+        <div class="actions-inline">
+          <button id="create-alert-btn" class="btn btn-primary">Create Subscription</button>
+          <button id="preview-digest-btn" class="btn btn-secondary">Preview Digest</button>
+          <button id="dispatch-webhook-btn" class="btn btn-secondary">Send Webhook Test</button>
+        </div>
+        <div id="alert-subscriptions-list"></div>
+        <pre id="digest-preview" class="report-output"></pre>
+      </article>
     </section>
   </main>
+
+  <dialog id="event-dialog" class="event-dialog">
+    <form method="dialog" class="event-dialog-form">
+      <header>
+        <h3 id="event-dialog-title">Event detail</h3>
+        <button class="btn btn-secondary" value="cancel">Close</button>
+      </header>
+      <div id="event-dialog-content"></div>
+    </form>
+  </dialog>
 
   <script src="app.js"></script>
 </body>
