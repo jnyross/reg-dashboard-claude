@@ -976,9 +976,20 @@ export function createApp(db: DatabaseConstructor.Database) {
       ORDER BY avgRisk DESC, eventCount DESC
       `,
       )
-      .all();
+      .all() as Array<{ country: string; eventCount: number; avgRisk: number; maxRisk: number; highRiskCount: number }>;
 
-    res.json({ items });
+    res.json({
+      items: items.map((row) => ({
+        country: row.country,
+        jurisdiction: row.country,
+        flag: countryFlags[row.country] ?? "🌐",
+        eventCount: row.eventCount,
+        avgRisk: Number(row.avgRisk.toFixed(2)),
+        averageRisk: Number(row.avgRisk.toFixed(2)),
+        maxRisk: row.maxRisk,
+        highRiskCount: row.highRiskCount,
+      })),
+    });
   });
 
   app.get("/api/analytics/stages", (_req: Request, res: Response) => {
@@ -1221,7 +1232,7 @@ export function createApp(db: DatabaseConstructor.Database) {
   });
 
   app.get("/api/reports/jurisdiction/:country", (req: Request, res: Response) => {
-    const country = req.params.country;
+    const country = String(req.params.country);
     const rows = db
       .prepare(
         `
@@ -1414,7 +1425,7 @@ export function createApp(db: DatabaseConstructor.Database) {
       return res.status(404).json({ error: "saved search not found" });
     }
 
-    return res.status(204).send();
+    return res.json({ deleted: true });
   });
 
   // Notifications
@@ -1609,6 +1620,43 @@ export function createApp(db: DatabaseConstructor.Database) {
     const minChili = parseSingleInt(body.minChili, 1, 5) ?? 4;
     const sinceDays = parseSingleInt(body.sinceDays, 1, 90) ?? (body.frequency === "weekly" ? 7 : 1);
     res.json(buildDigestPreview(minChili, sinceDays));
+  });
+
+  app.post("/api/alerts/dispatch", async (req: Request, res: Response) => {
+    const body = req.body as { webhookUrl?: unknown; minChili?: unknown; sinceDays?: unknown; frequency?: unknown };
+    const webhookUrl = typeof body.webhookUrl === "string" ? body.webhookUrl.trim() : "";
+    if (!webhookUrl) {
+      return res.status(400).json({ error: "webhookUrl is required" });
+    }
+
+    const minChili = parseSingleInt(body.minChili, 1, 5) ?? 4;
+    const sinceDays = parseSingleInt(body.sinceDays, 1, 90) ?? (body.frequency === "weekly" ? 7 : 1);
+    const preview = buildDigestPreview(minChili, sinceDays);
+
+    try {
+      const response = await fetch(webhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "regulatory_digest",
+          ...preview,
+        }),
+      });
+
+      if (!response.ok) {
+        const responseText = await response.text();
+        return res.status(502).json({
+          error: "webhook dispatch failed",
+          status: response.status,
+          response: responseText.slice(0, 300),
+        });
+      }
+
+      return res.json({ status: "sent", destination: webhookUrl, eventCount: preview.count });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      return res.status(502).json({ error: "webhook dispatch failed", message });
+    }
   });
 
   app.get("/api/competitors/overview", (_req: Request, res: Response) => {

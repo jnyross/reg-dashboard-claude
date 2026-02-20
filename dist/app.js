@@ -774,7 +774,18 @@ function createApp(db) {
       ORDER BY avgRisk DESC, eventCount DESC
       `)
             .all();
-        res.json({ items });
+        res.json({
+            items: items.map((row) => ({
+                country: row.country,
+                jurisdiction: row.country,
+                flag: countryFlags[row.country] ?? "🌐",
+                eventCount: row.eventCount,
+                avgRisk: Number(row.avgRisk.toFixed(2)),
+                averageRisk: Number(row.avgRisk.toFixed(2)),
+                maxRisk: row.maxRisk,
+                highRiskCount: row.highRiskCount,
+            })),
+        });
     });
     app.get("/api/analytics/stages", (_req, res) => {
         const pipeline = db
@@ -799,6 +810,70 @@ function createApp(db) {
             .all();
         res.json({ pipeline });
     });
+    // Aliases for enhanced frontend contracts
+    app.get("/api/analytics/heatmap", (_req, res) => {
+        const jurisdictions = db
+            .prepare(`
+      SELECT jurisdiction_country AS country,
+             COUNT(*) AS eventCount,
+             AVG(chili_score) AS avgRisk
+      FROM regulation_events
+      GROUP BY jurisdiction_country
+      ORDER BY avgRisk DESC, eventCount DESC
+      `)
+            .all();
+        res.json({
+            items: jurisdictions.map((row) => ({
+                jurisdiction: row.country,
+                flag: countryFlags[row.country] ?? "🌐",
+                eventCount: row.eventCount,
+                averageRisk: Number(row.avgRisk.toFixed(2)),
+            })),
+        });
+    });
+    app.get("/api/analytics/pipeline", (_req, res) => {
+        const pipeline = db
+            .prepare(`
+      SELECT stage,
+             COUNT(*) AS count
+      FROM regulation_events
+      GROUP BY stage
+      `)
+            .all();
+        const map = new Map(pipeline.map((row) => [row.stage, row.count]));
+        res.json({
+            items: allowedStages.map((stage) => ({
+                stage,
+                count: map.get(stage) ?? 0,
+                color: stageColors[stage],
+            })),
+        });
+    });
+    app.get("/api/analytics/world-map", (_req, res) => {
+        const jurisdictions = db
+            .prepare(`
+      SELECT jurisdiction_country AS country,
+             COUNT(*) AS eventCount,
+             AVG(chili_score) AS avgRisk
+      FROM regulation_events
+      GROUP BY jurisdiction_country
+      ORDER BY eventCount DESC
+      `)
+            .all();
+        res.json({
+            points: jurisdictions.map((row) => {
+                const coord = worldCoordinates[row.country] ?? { lat: 0, lon: 0 };
+                return {
+                    jurisdiction: row.country,
+                    flag: countryFlags[row.country] ?? "🌐",
+                    eventCount: row.eventCount,
+                    averageRisk: Number(row.avgRisk.toFixed(2)),
+                    lat: coord.lat,
+                    lon: coord.lon,
+                };
+            }),
+        });
+    });
     app.get("/api/analytics/pipeline", (_req, res) => {
         const items = db
             .prepare(`
@@ -821,6 +896,116 @@ function createApp(db) {
       `)
             .all();
         res.json({ items });
+    });
+    // Competitor intelligence
+    app.get("/api/competitors/overview", (_req, res) => {
+        const rows = db
+            .prepare(`
+      SELECT competitor_responses, updated_at
+      FROM regulation_events
+      WHERE competitor_responses IS NOT NULL
+      `)
+            .all();
+        const knownCompetitors = ["Meta", "TikTok", "Snap", "YouTube", "Google", "X", "Reddit", "Discord"];
+        const aggregate = new Map();
+        for (const row of rows) {
+            const responses = safeJsonParse(row.competitor_responses) ?? [];
+            for (const response of responses) {
+                const detected = knownCompetitors.find((name) => new RegExp(`\\b${name}\\b`, "i").test(response)) ?? "Other";
+                const existing = aggregate.get(detected) ?? { responseCount: 0, latest: row.updated_at, samples: [] };
+                existing.responseCount += 1;
+                if (row.updated_at > existing.latest) {
+                    existing.latest = row.updated_at;
+                }
+                if (existing.samples.length < 3) {
+                    existing.samples.push(response);
+                }
+                aggregate.set(detected, existing);
+            }
+        }
+        const items = [...aggregate.entries()]
+            .map(([competitor, stats]) => ({
+            competitor,
+            responseCount: stats.responseCount,
+            latestActivityAt: stats.latest,
+            samples: stats.samples,
+        }))
+            .sort((a, b) => b.responseCount - a.responseCount);
+        res.json({ items });
+    });
+    app.get("/api/competitors/timeline", (_req, res) => {
+        const rows = db
+            .prepare(`
+      SELECT competitor_responses, updated_at
+      FROM regulation_events
+      WHERE competitor_responses IS NOT NULL
+      `)
+            .all();
+        const timeline = new Map();
+        for (const row of rows) {
+            const month = row.updated_at.slice(0, 7);
+            const responses = safeJsonParse(row.competitor_responses) ?? [];
+            const monthly = timeline.get(month) ?? new Map();
+            for (const response of responses) {
+                const match = response.match(/\b(Meta|TikTok|Snap|YouTube|Google|X|Reddit|Discord)\b/i);
+                const competitor = match ? match[1] : "Other";
+                monthly.set(competitor, (monthly.get(competitor) ?? 0) + 1);
+            }
+            timeline.set(month, monthly);
+        }
+        const items = [...timeline.entries()]
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([month, competitors]) => ({
+            month,
+            competitors: [...competitors.entries()].map(([name, count]) => ({ name, count })),
+        }));
+        res.json({ items });
+    });
+    // Reporting endpoints
+    app.get("/api/reports/trend-analysis", (_req, res) => {
+        const rows = db
+            .prepare(`
+      SELECT SUBSTR(COALESCE(published_date, created_at), 1, 7) AS month,
+             COUNT(*) AS count,
+             AVG(chili_score) AS avgRisk
+      FROM regulation_events
+      GROUP BY month
+      ORDER BY month ASC
+      `)
+            .all();
+        const items = rows.map((row, index) => {
+            const prev = index > 0 ? rows[index - 1] : null;
+            return {
+                month: row.month,
+                count: row.count,
+                averageRisk: Number(row.avgRisk.toFixed(2)),
+                deltaFromPreviousMonth: prev ? row.count - prev.count : null,
+            };
+        });
+        res.json({ items });
+    });
+    app.get("/api/reports/jurisdiction/:country", (req, res) => {
+        const country = String(req.params.country);
+        const rows = db
+            .prepare(`
+      SELECT ${eventSelectColumns}
+      FROM regulation_events e
+      JOIN sources s ON s.id = e.source_id
+      WHERE e.jurisdiction_country = ?
+      ORDER BY e.chili_score DESC, e.updated_at DESC
+      `)
+            .all(country);
+        const mapped = rows.map(mapEvent);
+        const averageRisk = mapped.length > 0
+            ? Number((mapped.reduce((sum, event) => sum + event.scores.chili, 0) / mapped.length).toFixed(2))
+            : 0;
+        res.json({
+            jurisdiction: country,
+            flag: countryFlags[country] ?? "🌐",
+            totalEvents: mapped.length,
+            averageRisk,
+            items: mapped,
+        });
     });
     // Export endpoints
     app.get("/api/export/csv", (req, res) => {
@@ -949,11 +1134,11 @@ function createApp(db) {
         if (result.changes === 0) {
             return res.status(404).json({ error: "saved search not found" });
         }
-        return res.status(204).send();
+        return res.json({ deleted: true });
     });
     // Notifications
     app.get("/api/notifications", (req, res) => {
-        const unreadOnly = req.query.unread === "true";
+        const unreadOnly = req.query.unread === "true" || req.query.unreadOnly === "true";
         const limit = parsePaging(req.query.limit, 20, 100);
         const where = unreadOnly ? "WHERE read_at IS NULL" : "";
         const rows = db
@@ -1100,6 +1285,39 @@ function createApp(db) {
         const minChili = parseSingleInt(body.minChili, 1, 5) ?? 4;
         const sinceDays = parseSingleInt(body.sinceDays, 1, 90) ?? (body.frequency === "weekly" ? 7 : 1);
         res.json(buildDigestPreview(minChili, sinceDays));
+    });
+    app.post("/api/alerts/dispatch", async (req, res) => {
+        const body = req.body;
+        const webhookUrl = typeof body.webhookUrl === "string" ? body.webhookUrl.trim() : "";
+        if (!webhookUrl) {
+            return res.status(400).json({ error: "webhookUrl is required" });
+        }
+        const minChili = parseSingleInt(body.minChili, 1, 5) ?? 4;
+        const sinceDays = parseSingleInt(body.sinceDays, 1, 90) ?? (body.frequency === "weekly" ? 7 : 1);
+        const preview = buildDigestPreview(minChili, sinceDays);
+        try {
+            const response = await fetch(webhookUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    type: "regulatory_digest",
+                    ...preview,
+                }),
+            });
+            if (!response.ok) {
+                const responseText = await response.text();
+                return res.status(502).json({
+                    error: "webhook dispatch failed",
+                    status: response.status,
+                    response: responseText.slice(0, 300),
+                });
+            }
+            return res.json({ status: "sent", destination: webhookUrl, eventCount: preview.count });
+        }
+        catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            return res.status(502).json({ error: "webhook dispatch failed", message });
+        }
     });
     app.get("/api/competitors/overview", (_req, res) => {
         const rows = db
