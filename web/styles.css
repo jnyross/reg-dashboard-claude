@@ -296,6 +296,11 @@ select[multiple] {
   border-radius: 10px;
   padding: 10px;
   background: var(--surface-soft);
+  cursor: pointer;
+}
+
+.brief-card:hover {
+  border-color: var(--primary);
 }
 
 .brief-title {

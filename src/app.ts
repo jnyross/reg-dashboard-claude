@@ -3,7 +3,7 @@ import path from "node:path";
 import DatabaseConstructor from "better-sqlite3";
 import PDFDocument from "pdfkit";
 import { runPipeline } from "./pipeline";
-import { getLatestCrawlRun } from "./db";
+import { backfillLawsFromEvents, getLatestCrawlRun } from "./db";
 
 type Stage =
   | "proposed"
@@ -50,6 +50,59 @@ type DbEventRow = {
   updated_at: string;
   created_at: string;
   urgency_rank?: number;
+};
+
+type DbLawRow = {
+  id: number;
+  law_key: string;
+  law_name: string;
+  jurisdiction_country: string;
+  jurisdiction_state: string | null;
+  law_type: string | null;
+  stage: Stage | null;
+  status: string | null;
+  first_seen_at: string | null;
+  last_seen_at: string | null;
+  latest_effective_date: string | null;
+  aggregate_risk_max: number;
+  aggregate_risk_recent_weighted: number;
+  aggregate_risk_overall: number;
+  source_confidence: number;
+  update_count: number;
+  latest_event_id: string | null;
+  latest_update_title: string | null;
+  latest_update_summary: string | null;
+  latest_update_stage: Stage | null;
+  latest_update_published_date: string | null;
+  latest_update_effective_date: string | null;
+  latest_chili_score: number | null;
+  latest_impact_score: number | null;
+  latest_likelihood_score: number | null;
+  latest_confidence_score: number | null;
+  latest_age_bracket: string | null;
+  latest_source_name: string | null;
+  latest_source_url: string | null;
+  latest_source_reliability_tier: number | null;
+};
+
+type DbLawUpdateRow = {
+  id: number;
+  law_id: number;
+  event_id: string;
+  update_title: string;
+  update_summary: string | null;
+  source_url: string | null;
+  source_name: string | null;
+  published_date: string | null;
+  effective_date: string | null;
+  stage: string | null;
+  chili_score: number | null;
+  impact_score: number | null;
+  likelihood_score: number | null;
+  confidence_score: number | null;
+  created_at: string;
+  age_bracket: string | null;
+  source_reliability_tier: number | null;
 };
 
 type SavedSearchRow = {
@@ -291,11 +344,57 @@ const eventSelectColumns = `
   COALESCE(s.reliability_tier, 3) AS source_reliability_tier
 `;
 
-function createBriefSelect(sqlLimit: number): string {
+function createLawPrioritySelect(sqlLimit: number): string {
   return `
     SELECT
-      ${eventSelectColumns},
-      CASE e.stage
+      l.id,
+      l.law_key,
+      l.law_name,
+      l.jurisdiction_country,
+      l.jurisdiction_state,
+      l.law_type,
+      l.stage,
+      l.status,
+      l.first_seen_at,
+      l.last_seen_at,
+      l.latest_effective_date,
+      l.aggregate_risk_max,
+      l.aggregate_risk_recent_weighted,
+      l.aggregate_risk_overall,
+      l.source_confidence,
+      COALESCE(stats.update_count, 0) AS update_count,
+      latest.event_id AS latest_event_id,
+      latest.update_title AS latest_update_title,
+      latest.update_summary AS latest_update_summary,
+      latest.stage AS latest_update_stage,
+      latest.published_date AS latest_update_published_date,
+      latest.effective_date AS latest_update_effective_date,
+      latest.chili_score AS latest_chili_score,
+      latest.impact_score AS latest_impact_score,
+      latest.likelihood_score AS latest_likelihood_score,
+      latest.confidence_score AS latest_confidence_score,
+      latest_event.age_bracket AS latest_age_bracket,
+      latest_source.name AS latest_source_name,
+      latest_source.url AS latest_source_url,
+      COALESCE(latest_source.reliability_tier, 3) AS latest_source_reliability_tier
+    FROM laws l
+    LEFT JOIN (
+      SELECT law_id, COUNT(*) AS update_count, MAX(COALESCE(published_date, created_at)) AS latest_at
+      FROM law_updates
+      GROUP BY law_id
+    ) stats ON stats.law_id = l.id
+    LEFT JOIN law_updates latest ON latest.id = (
+      SELECT lu2.id
+      FROM law_updates lu2
+      WHERE lu2.law_id = l.id
+      ORDER BY COALESCE(lu2.published_date, lu2.effective_date, lu2.created_at) DESC, lu2.id DESC
+      LIMIT 1
+    )
+    LEFT JOIN regulation_events latest_event ON latest_event.id = latest.event_id
+    LEFT JOIN sources latest_source ON latest_source.id = latest_event.source_id
+    ORDER BY
+      l.aggregate_risk_max DESC,
+      CASE COALESCE(l.stage, latest.stage)
         WHEN 'proposed' THEN 9
         WHEN 'introduced' THEN 8
         WHEN 'committee_review' THEN 7
@@ -305,16 +404,94 @@ function createBriefSelect(sqlLimit: number): string {
         WHEN 'amended' THEN 3
         WHEN 'withdrawn' THEN 2
         WHEN 'rejected' THEN 1
-      END AS urgency_rank
-    FROM regulation_events e
-    JOIN sources s ON s.id = e.source_id
-    ORDER BY
-      e.chili_score DESC,
-      urgency_rank DESC,
-      e.updated_at DESC,
-      e.id ASC
+        ELSE 0
+      END DESC,
+      l.aggregate_risk_recent_weighted DESC,
+      COALESCE(stats.latest_at, l.last_seen_at, l.updated_at) DESC,
+      l.id ASC
     LIMIT ${sqlLimit};
   `;
+}
+
+function mapLawRow(row: DbLawRow) {
+  const stage = (row.stage ?? row.latest_update_stage ?? "proposed") as Stage;
+  const jurisdictionName = row.jurisdiction_state || row.jurisdiction_country;
+  return {
+    id: row.latest_event_id ?? row.law_key,
+    lawId: row.id,
+    lawKey: row.law_key,
+    lawName: decodeEntities(row.law_name),
+    title: decodeEntities(row.law_name),
+    lawType: row.law_type ?? "law",
+    jurisdiction: {
+      country: row.jurisdiction_country,
+      state: row.jurisdiction_state || null,
+      flag: countryFlags[jurisdictionName] ?? countryFlags[row.jurisdiction_country] ?? "🌐",
+    },
+    stage,
+    status: row.status ?? stage,
+    stageColor: stageColors[stage],
+    updateCount: row.update_count,
+    summary: cleanText(row.latest_update_summary),
+    ageBracket: row.latest_age_bracket ?? "both",
+    scores: {
+      impact: row.latest_impact_score ?? Math.max(1, Math.round(row.aggregate_risk_overall || 0)),
+      likelihood: row.latest_likelihood_score ?? Math.max(1, Math.round(row.aggregate_risk_overall || 0)),
+      confidence: row.latest_confidence_score ?? Math.max(1, Math.round(row.source_confidence || 0)),
+      chili: Math.max(1, Math.round(row.aggregate_risk_max || 0)),
+    },
+    risk: {
+      max: Number((row.aggregate_risk_max || 0).toFixed(2)),
+      recentWeighted: Number((row.aggregate_risk_recent_weighted || 0).toFixed(2)),
+      overall: Number((row.aggregate_risk_overall || 0).toFixed(2)),
+    },
+    source: {
+      name: row.latest_source_name ?? "Multi-source",
+      url: row.latest_source_url ?? "",
+      reliabilityTier: row.latest_source_reliability_tier ?? Math.round(row.source_confidence || 3),
+    },
+    latestUpdate: {
+      eventId: row.latest_event_id,
+      title: row.latest_update_title,
+      summary: cleanText(row.latest_update_summary),
+      stage: row.latest_update_stage,
+      publishedDate: row.latest_update_published_date,
+      effectiveDate: row.latest_update_effective_date,
+      chiliScore: row.latest_chili_score,
+    },
+    firstSeenAt: row.first_seen_at,
+    lastSeenAt: row.last_seen_at,
+    latestEffectiveDate: row.latest_effective_date,
+    createdAt: row.first_seen_at,
+    updatedAt: row.last_seen_at,
+  };
+}
+
+function mapLawUpdateRow(row: DbLawUpdateRow) {
+  const stage = (row.stage ?? "proposed") as Stage;
+  return {
+    id: row.id,
+    eventId: row.event_id,
+    title: decodeEntities(row.update_title),
+    summary: cleanText(row.update_summary),
+    stage,
+    stageColor: stageColors[stage],
+    ageBracket: row.age_bracket ?? "both",
+    scores: {
+      impact: row.impact_score ?? null,
+      likelihood: row.likelihood_score ?? null,
+      confidence: row.confidence_score ?? null,
+      chili: row.chili_score ?? null,
+    },
+    source: {
+      name: row.source_name ?? "Unknown",
+      url: row.source_url,
+      reliabilityTier: row.source_reliability_tier ?? null,
+    },
+    publishedDate: row.published_date,
+    effectiveDate: row.effective_date,
+    createdAt: row.created_at,
+  };
 }
 
 function ensureFeatureTables(db: DatabaseConstructor.Database): void {
@@ -431,6 +608,7 @@ export function createApp(db: DatabaseConstructor.Database) {
   app.use(express.json());
 
   ensureFeatureTables(db);
+  backfillLawsFromEvents(db);
 
   // Serve frontend static files
   app.use(express.static(path.join(process.cwd(), "web")));
@@ -455,14 +633,17 @@ export function createApp(db: DatabaseConstructor.Database) {
 
   app.get("/api/brief", (req: Request, res: Response) => {
     const limit = parsePaging(req.query.limit, defaultBriefLimit, 20);
-    const rows = db.prepare(createBriefSelect(limit)).all() as DbEventRow[];
+    const rows = db.prepare(createLawPrioritySelect(limit)).all() as DbLawRow[];
     const lastCrawl = getLatestCrawlRun(db);
 
-    const items = rows.map((row) => ({
-      ...mapEvent(row),
-      urgencyScore: stageUrgency[row.stage] ?? 0,
-      chiliScore: row.chili_score,
-    }));
+    const items = rows.map((row) => {
+      const mapped = mapLawRow(row);
+      return {
+        ...mapped,
+        urgencyScore: stageUrgency[mapped.stage] ?? 0,
+        chiliScore: mapped.scores.chili,
+      };
+    });
 
     res.json({
       generatedAt: new Date().toISOString(),
@@ -470,7 +651,308 @@ export function createApp(db: DatabaseConstructor.Database) {
       items,
       total: rows.length,
       limit,
+      view: "laws",
     });
+  });
+
+  app.get("/api/laws", (req: Request, res: Response) => {
+    const singleJurisdiction = typeof req.query.jurisdiction === "string" ? req.query.jurisdiction.trim() : "";
+    const jurisdictionsRaw = typeof req.query.jurisdictions === "string" ? req.query.jurisdictions : "";
+    const jurisdictions = [...new Set([
+      ...jurisdictionsRaw.split(",").map((value) => value.trim()).filter(Boolean),
+      ...(singleJurisdiction ? [singleJurisdiction] : []),
+    ])];
+
+    const minRisk = parseSingleInt(req.query.minRisk, 1, 5);
+    const stage = typeof req.query.stage === "string" ? req.query.stage.trim() : "";
+    const q = typeof req.query.q === "string" ? req.query.q.trim() : "";
+
+    if (req.query.minRisk !== undefined && minRisk === undefined) {
+      return res.status(400).json({ error: "minRisk must be an integer between 1 and 5" });
+    }
+
+    if (stage && !allowedStages.includes(stage as Stage)) {
+      return res.status(400).json({ error: "stage must use valid lifecycle values" });
+    }
+
+    const page = parsePaging(req.query.page, 1);
+    const limit = parsePaging(req.query.limit, 10, 100);
+    const offset = (page - 1) * limit;
+
+    const whereClauses: string[] = [];
+    const params: Array<string | number> = [];
+
+    if (jurisdictions.length > 0) {
+      const placeholders = jurisdictions.map(() => "?").join(", ");
+      whereClauses.push(`(l.jurisdiction_country IN (${placeholders}) OR l.jurisdiction_state IN (${placeholders}))`);
+      params.push(...jurisdictions, ...jurisdictions);
+    }
+
+    if (minRisk !== undefined) {
+      whereClauses.push("l.aggregate_risk_max >= ?");
+      params.push(minRisk);
+    }
+
+    if (stage) {
+      whereClauses.push("l.stage = ?");
+      params.push(stage);
+    }
+
+    if (q) {
+      whereClauses.push("(l.law_name LIKE ? OR latest.update_title LIKE ? OR latest.update_summary LIKE ?)");
+      const like = `%${q}%`;
+      params.push(like, like, like);
+    }
+
+    const where = whereClauses.length ? `WHERE ${whereClauses.join(" AND ")}` : "";
+
+    const countRow = db
+      .prepare(
+        `
+        SELECT COUNT(*) AS total
+        FROM laws l
+        LEFT JOIN law_updates latest ON latest.id = (
+          SELECT lu2.id
+          FROM law_updates lu2
+          WHERE lu2.law_id = l.id
+          ORDER BY COALESCE(lu2.published_date, lu2.effective_date, lu2.created_at) DESC, lu2.id DESC
+          LIMIT 1
+        )
+        ${where}
+        `,
+      )
+      .get(...params) as { total: number };
+
+    const total = countRow?.total ?? 0;
+
+    const rows = db
+      .prepare(
+        `
+        SELECT
+          l.id,
+          l.law_key,
+          l.law_name,
+          l.jurisdiction_country,
+          l.jurisdiction_state,
+          l.law_type,
+          l.stage,
+          l.status,
+          l.first_seen_at,
+          l.last_seen_at,
+          l.latest_effective_date,
+          l.aggregate_risk_max,
+          l.aggregate_risk_recent_weighted,
+          l.aggregate_risk_overall,
+          l.source_confidence,
+          COALESCE(stats.update_count, 0) AS update_count,
+          latest.event_id AS latest_event_id,
+          latest.update_title AS latest_update_title,
+          latest.update_summary AS latest_update_summary,
+          latest.stage AS latest_update_stage,
+          latest.published_date AS latest_update_published_date,
+          latest.effective_date AS latest_update_effective_date,
+          latest.chili_score AS latest_chili_score,
+          latest.impact_score AS latest_impact_score,
+          latest.likelihood_score AS latest_likelihood_score,
+          latest.confidence_score AS latest_confidence_score,
+          latest_event.age_bracket AS latest_age_bracket,
+          latest_source.name AS latest_source_name,
+          latest_source.url AS latest_source_url,
+          COALESCE(latest_source.reliability_tier, 3) AS latest_source_reliability_tier
+        FROM laws l
+        LEFT JOIN (
+          SELECT law_id, COUNT(*) AS update_count, MAX(COALESCE(published_date, created_at)) AS latest_at
+          FROM law_updates
+          GROUP BY law_id
+        ) stats ON stats.law_id = l.id
+        LEFT JOIN law_updates latest ON latest.id = (
+          SELECT lu2.id
+          FROM law_updates lu2
+          WHERE lu2.law_id = l.id
+          ORDER BY COALESCE(lu2.published_date, lu2.effective_date, lu2.created_at) DESC, lu2.id DESC
+          LIMIT 1
+        )
+        LEFT JOIN regulation_events latest_event ON latest_event.id = latest.event_id
+        LEFT JOIN sources latest_source ON latest_source.id = latest_event.source_id
+        ${where}
+        ORDER BY l.aggregate_risk_max DESC, l.aggregate_risk_recent_weighted DESC, COALESCE(stats.latest_at, l.last_seen_at, l.updated_at) DESC, l.id ASC
+        LIMIT ? OFFSET ?
+        `,
+      )
+      .all(...params, limit, offset) as DbLawRow[];
+
+    res.set("X-Total-Count", String(total));
+    res.set("X-Total-Pages", String(Math.max(1, Math.ceil(total / limit))));
+    res.set("X-Current-Page", String(page));
+    res.set("X-Page", String(page));
+    res.set("X-Limit", String(limit));
+
+    res.json({
+      items: rows.map(mapLawRow),
+      page,
+      limit,
+      total,
+      totalPages: Math.max(1, Math.ceil(total / limit)),
+    });
+  });
+
+  app.get("/api/laws/:lawKey", (req: Request, res: Response) => {
+    const lawKey = decodeURIComponent(String(req.params.lawKey));
+
+    const row = db
+      .prepare(
+        `
+        SELECT
+          l.id,
+          l.law_key,
+          l.law_name,
+          l.jurisdiction_country,
+          l.jurisdiction_state,
+          l.law_type,
+          l.stage,
+          l.status,
+          l.first_seen_at,
+          l.last_seen_at,
+          l.latest_effective_date,
+          l.aggregate_risk_max,
+          l.aggregate_risk_recent_weighted,
+          l.aggregate_risk_overall,
+          l.source_confidence,
+          COALESCE(stats.update_count, 0) AS update_count,
+          latest.event_id AS latest_event_id,
+          latest.update_title AS latest_update_title,
+          latest.update_summary AS latest_update_summary,
+          latest.stage AS latest_update_stage,
+          latest.published_date AS latest_update_published_date,
+          latest.effective_date AS latest_update_effective_date,
+          latest.chili_score AS latest_chili_score,
+          latest.impact_score AS latest_impact_score,
+          latest.likelihood_score AS latest_likelihood_score,
+          latest.confidence_score AS latest_confidence_score,
+          latest_event.age_bracket AS latest_age_bracket,
+          latest_source.name AS latest_source_name,
+          latest_source.url AS latest_source_url,
+          COALESCE(latest_source.reliability_tier, 3) AS latest_source_reliability_tier
+        FROM laws l
+        LEFT JOIN (
+          SELECT law_id, COUNT(*) AS update_count, MAX(COALESCE(published_date, created_at)) AS latest_at
+          FROM law_updates
+          GROUP BY law_id
+        ) stats ON stats.law_id = l.id
+        LEFT JOIN law_updates latest ON latest.id = (
+          SELECT lu2.id
+          FROM law_updates lu2
+          WHERE lu2.law_id = l.id
+          ORDER BY COALESCE(lu2.published_date, lu2.effective_date, lu2.created_at) DESC, lu2.id DESC
+          LIMIT 1
+        )
+        LEFT JOIN regulation_events latest_event ON latest_event.id = latest.event_id
+        LEFT JOIN sources latest_source ON latest_source.id = latest_event.source_id
+        WHERE l.law_key = ?
+        LIMIT 1
+        `,
+      )
+      .get(lawKey) as DbLawRow | undefined;
+
+    if (!row) {
+      return res.status(404).json({ error: "law not found" });
+    }
+
+    const updates = db
+      .prepare(
+        `
+        SELECT
+          lu.id,
+          lu.law_id,
+          lu.event_id,
+          lu.update_title,
+          lu.update_summary,
+          lu.source_url,
+          lu.source_name,
+          lu.published_date,
+          lu.effective_date,
+          lu.stage,
+          lu.chili_score,
+          lu.impact_score,
+          lu.likelihood_score,
+          lu.confidence_score,
+          lu.created_at,
+          e.age_bracket,
+          COALESCE(s.reliability_tier, 3) AS source_reliability_tier
+        FROM law_updates lu
+        LEFT JOIN regulation_events e ON e.id = lu.event_id
+        LEFT JOIN sources s ON s.id = e.source_id
+        WHERE lu.law_id = ?
+        ORDER BY COALESCE(lu.published_date, lu.effective_date, lu.created_at) DESC, lu.id DESC
+        `,
+      )
+      .all(row.id) as DbLawUpdateRow[];
+
+    const mappedLaw = mapLawRow(row);
+    const mappedUpdates = updates.map(mapLawUpdateRow);
+
+    res.json({
+      ...mappedLaw,
+      updates: mappedUpdates,
+      timeline: mappedUpdates.map((update) => ({
+        id: update.id,
+        changedAt: update.publishedDate ?? update.createdAt,
+        label: String(update.stage).replace(/_/g, " "),
+        value: update.title,
+        stage: update.stage,
+        stageColor: update.stageColor,
+        sourceName: update.source.name,
+      })),
+    });
+  });
+
+  app.get("/api/laws/:lawKey/updates", (req: Request, res: Response) => {
+    const lawKey = decodeURIComponent(String(req.params.lawKey));
+    const law = db.prepare("SELECT id FROM laws WHERE law_key = ?").get(lawKey) as { id: number } | undefined;
+    if (!law) {
+      return res.status(404).json({ error: "law not found" });
+    }
+
+    const updates = db
+      .prepare(
+        `
+        SELECT
+          lu.id,
+          lu.law_id,
+          lu.event_id,
+          lu.update_title,
+          lu.update_summary,
+          lu.source_url,
+          lu.source_name,
+          lu.published_date,
+          lu.effective_date,
+          lu.stage,
+          lu.chili_score,
+          lu.impact_score,
+          lu.likelihood_score,
+          lu.confidence_score,
+          lu.created_at,
+          e.age_bracket,
+          COALESCE(s.reliability_tier, 3) AS source_reliability_tier
+        FROM law_updates lu
+        LEFT JOIN regulation_events e ON e.id = lu.event_id
+        LEFT JOIN sources s ON s.id = e.source_id
+        WHERE lu.law_id = ?
+        ORDER BY COALESCE(lu.published_date, lu.effective_date, lu.created_at) DESC, lu.id DESC
+        `,
+      )
+      .all(law.id) as DbLawUpdateRow[];
+
+    res.json({
+      lawKey,
+      total: updates.length,
+      items: updates.map(mapLawUpdateRow),
+    });
+  });
+
+  app.post("/api/laws/rebuild", (_req: Request, res: Response) => {
+    const stats = backfillLawsFromEvents(db);
+    res.json({ status: "ok", ...stats, rebuiltAt: new Date().toISOString() });
   });
 
   app.get("/api/events", (req: Request, res: Response) => {
@@ -817,6 +1299,8 @@ export function createApp(db: DatabaseConstructor.Database) {
       VALUES (?, ?, 'analyst', 'updated', 'manual_edit', NULL, ?)
       `,
     ).run(id, new Date().toISOString(), JSON.stringify(body));
+
+    backfillLawsFromEvents(db);
 
     const updated = db
       .prepare(

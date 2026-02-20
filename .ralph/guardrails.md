@@ -1,12 +1,12 @@
 # Guardrails
 
-- WRITE CODE, NOT GOVERNANCE PAPERWORK. Every iteration must produce runnable code or tests. No-op "continuity checkpoint" iterations are BANNED.
-- If you have nothing left to build, output <promise>COMPLETE</promise> immediately. Do not loop.
-- Enforce TDD for implementation tasks.
-- Preserve source provenance for every regulatory item.
-- Prioritize direct official sources over secondary coverage.
-- Never fabricate legal conclusions; mark uncertainty explicitly.
-- Keep age-range targeting explicit (13-15 early teens / 16-18 late teens).
-- Source reliability must be tracked and weighted (official > legal/industry > general news > social).
-- Use MiniMax M2.5 via minimax-coding-plan provider for LLM-based analysis tasks.
-- Keep architecture pluggable for future providers (Grok, etc.).
+- Ship runnable code and tests every iteration; no paperwork-only loops.
+- Preserve source provenance from `regulation_events` into `law_updates` (`event_id`, source metadata, dates).
+- Canonicalization must be deterministic: same law in same jurisdiction -> same `law_key`.
+- Law aggregation is additive, never destructive of raw event history.
+- `/api/brief` is law-first (top canonical laws), not raw event-first.
+- UI must expose law timeline (one law -> many updates) in a single analyst flow.
+- Never fabricate legal outcomes; unknowns remain explicit in summaries.
+- Keep stage taxonomy constrained to existing lifecycle enum values.
+- Ensure backward compatibility for core event workflows (`/api/events`, feedback, exports).
+- Completion bar: tests/build pass + live `/api/laws` proof + self-score >= 95.

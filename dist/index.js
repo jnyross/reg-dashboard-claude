@@ -10,6 +10,7 @@ const db = (0, db_1.openDatabase)(databasePath);
 (0, db_1.initializeSchema)(db);
 (0, db_1.migrateSchema)(db);
 (0, seed_1.seedSampleData)(db);
+(0, db_1.backfillLawsFromEvents)(db);
 const app = (0, app_1.createApp)(db);
 app.listen(PORT, () => {
     console.log(`Global Under-16 Regulation API running on http://localhost:${PORT}`);

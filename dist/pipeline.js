@@ -125,6 +125,8 @@ async function runPipeline(db, apiKey, options = {}) {
             }
         });
         persistTransaction();
+        const lawBackfill = (0, db_1.backfillLawsFromEvents)(db);
+        options.onProgress?.("laws", `Law index rebuilt: ${lawBackfill.laws} canonical laws, ${lawBackfill.lawUpdates} updates (${lawBackfill.mergedDuplicates} merged)`);
         (0, db_1.completeCrawlRun)(db, runId, {
             itemsFound: crawledItems.length,
             itemsNew,

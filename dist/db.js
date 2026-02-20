@@ -15,10 +15,12 @@ exports.failCrawlRun = failCrawlRun;
 exports.getLatestCrawlRun = getLatestCrawlRun;
 exports.upsertEvent = upsertEvent;
 exports.ensureSource = ensureSource;
+exports.backfillLawsFromEvents = backfillLawsFromEvents;
 const node_fs_1 = __importDefault(require("node:fs"));
 const node_path_1 = __importDefault(require("node:path"));
 const better_sqlite3_1 = __importDefault(require("better-sqlite3"));
 const node_crypto_1 = __importDefault(require("node:crypto"));
+const law_canonical_1 = require("./law-canonical");
 exports.databasePathDefault = node_path_1.default.join(process.cwd(), "data", "reg-regulation-dashboard.sqlite");
 const allowedStages = [
     "proposed",
@@ -146,6 +148,48 @@ function initializeSchema(db) {
       FOREIGN KEY (event_id) REFERENCES regulation_events (id) ON DELETE CASCADE
     );
 
+    CREATE TABLE IF NOT EXISTS laws (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      law_key TEXT NOT NULL UNIQUE,
+      law_name TEXT NOT NULL,
+      jurisdiction_country TEXT NOT NULL,
+      jurisdiction_state TEXT,
+      law_type TEXT,
+      stage TEXT,
+      status TEXT,
+      first_seen_at TEXT,
+      last_seen_at TEXT,
+      latest_effective_date TEXT,
+      aggregate_risk_max REAL NOT NULL DEFAULT 0,
+      aggregate_risk_recent_weighted REAL NOT NULL DEFAULT 0,
+      aggregate_risk_overall REAL NOT NULL DEFAULT 0,
+      source_confidence REAL NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS law_updates (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      law_id INTEGER NOT NULL,
+      event_id TEXT NOT NULL,
+      source_item_id TEXT,
+      update_title TEXT NOT NULL,
+      update_summary TEXT,
+      source_url TEXT,
+      source_name TEXT,
+      published_date TEXT,
+      effective_date TEXT,
+      stage TEXT,
+      chili_score INTEGER,
+      impact_score INTEGER,
+      likelihood_score INTEGER,
+      confidence_score INTEGER,
+      created_at TEXT NOT NULL,
+      raw_metadata TEXT,
+      FOREIGN KEY (law_id) REFERENCES laws (id) ON DELETE CASCADE,
+      FOREIGN KEY (event_id) REFERENCES regulation_events (id) ON DELETE CASCADE
+    );
+
     CREATE INDEX IF NOT EXISTS idx_regulation_events_stage
       ON regulation_events(stage);
     CREATE INDEX IF NOT EXISTS idx_regulation_events_jurisdiction_country
@@ -166,6 +210,16 @@ function initializeSchema(db) {
       ON notifications(event_id);
     CREATE UNIQUE INDEX IF NOT EXISTS idx_dedup_url_jurisdiction_title
       ON regulation_events(source_url_link, jurisdiction_country, title);
+    CREATE INDEX IF NOT EXISTS idx_laws_jurisdiction
+      ON laws(jurisdiction_country, jurisdiction_state);
+    CREATE INDEX IF NOT EXISTS idx_laws_stage
+      ON laws(stage);
+    CREATE INDEX IF NOT EXISTS idx_laws_risk
+      ON laws(aggregate_risk_max DESC, aggregate_risk_recent_weighted DESC);
+    CREATE INDEX IF NOT EXISTS idx_law_updates_law_id
+      ON law_updates(law_id, published_date DESC, created_at DESC);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_law_updates_event_id
+      ON law_updates(event_id);
   `);
 }
 /** Safely add a column to a table if it doesn't already exist */
@@ -239,12 +293,72 @@ function migrateSchema(db) {
       FOREIGN KEY (event_id) REFERENCES regulation_events (id) ON DELETE CASCADE
     );
 
+    CREATE TABLE IF NOT EXISTS laws (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      law_key TEXT NOT NULL UNIQUE,
+      law_name TEXT NOT NULL,
+      jurisdiction_country TEXT NOT NULL,
+      jurisdiction_state TEXT,
+      law_type TEXT,
+      stage TEXT,
+      status TEXT,
+      first_seen_at TEXT,
+      last_seen_at TEXT,
+      latest_effective_date TEXT,
+      aggregate_risk_max REAL NOT NULL DEFAULT 0,
+      aggregate_risk_recent_weighted REAL NOT NULL DEFAULT 0,
+      aggregate_risk_overall REAL NOT NULL DEFAULT 0,
+      source_confidence REAL NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS law_updates (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      law_id INTEGER NOT NULL,
+      event_id TEXT NOT NULL,
+      source_item_id TEXT,
+      update_title TEXT NOT NULL,
+      update_summary TEXT,
+      source_url TEXT,
+      source_name TEXT,
+      published_date TEXT,
+      effective_date TEXT,
+      stage TEXT,
+      chili_score INTEGER,
+      impact_score INTEGER,
+      likelihood_score INTEGER,
+      confidence_score INTEGER,
+      created_at TEXT NOT NULL,
+      raw_metadata TEXT,
+      FOREIGN KEY (law_id) REFERENCES laws (id) ON DELETE CASCADE,
+      FOREIGN KEY (event_id) REFERENCES regulation_events (id) ON DELETE CASCADE
+    );
+
     CREATE INDEX IF NOT EXISTS idx_regulation_events_age_bracket ON regulation_events(age_bracket);
     CREATE INDEX IF NOT EXISTS idx_regulation_events_published_date ON regulation_events(published_date);
     CREATE INDEX IF NOT EXISTS idx_regulation_events_updated_at ON regulation_events(updated_at);
     CREATE INDEX IF NOT EXISTS idx_event_history_event_id ON event_history(event_id, changed_at DESC);
     CREATE UNIQUE INDEX IF NOT EXISTS idx_notifications_event_id ON notifications(event_id);
+    CREATE INDEX IF NOT EXISTS idx_laws_jurisdiction ON laws(jurisdiction_country, jurisdiction_state);
+    CREATE INDEX IF NOT EXISTS idx_laws_stage ON laws(stage);
+    CREATE INDEX IF NOT EXISTS idx_laws_risk ON laws(aggregate_risk_max DESC, aggregate_risk_recent_weighted DESC);
+    CREATE INDEX IF NOT EXISTS idx_law_updates_law_id ON law_updates(law_id, published_date DESC, created_at DESC);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_law_updates_event_id ON law_updates(event_id);
   `);
+    addColumnIfNotExists(db, "laws", "stage", "TEXT");
+    addColumnIfNotExists(db, "laws", "status", "TEXT");
+    addColumnIfNotExists(db, "laws", "aggregate_risk_max", "REAL NOT NULL DEFAULT 0");
+    addColumnIfNotExists(db, "laws", "aggregate_risk_recent_weighted", "REAL NOT NULL DEFAULT 0");
+    addColumnIfNotExists(db, "laws", "aggregate_risk_overall", "REAL NOT NULL DEFAULT 0");
+    addColumnIfNotExists(db, "laws", "source_confidence", "REAL NOT NULL DEFAULT 0");
+    addColumnIfNotExists(db, "law_updates", "source_item_id", "TEXT");
+    addColumnIfNotExists(db, "law_updates", "effective_date", "TEXT");
+    addColumnIfNotExists(db, "law_updates", "stage", "TEXT");
+    addColumnIfNotExists(db, "law_updates", "chili_score", "INTEGER");
+    addColumnIfNotExists(db, "law_updates", "impact_score", "INTEGER");
+    addColumnIfNotExists(db, "law_updates", "likelihood_score", "INTEGER");
+    addColumnIfNotExists(db, "law_updates", "confidence_score", "INTEGER");
 }
 function addEventHistory(db, entry) {
     db.prepare(`INSERT INTO event_history (event_id, changed_at, changed_by, change_type, field_name, previous_value, new_value)
@@ -420,5 +534,189 @@ function ensureSource(db, source) {
         .prepare("INSERT INTO sources (name, url, authority_type, jurisdiction, reliability_tier, created_at) VALUES (?, ?, ?, ?, ?, ?)")
         .run(source.name, source.url, source.authorityType, source.jurisdiction, source.reliabilityTier, new Date().toISOString());
     return Number(result.lastInsertRowid);
+}
+function parseDateOr(value, fallback) {
+    if (!value)
+        return fallback;
+    const parsed = Date.parse(value);
+    return Number.isNaN(parsed) ? fallback : parsed;
+}
+function pickEventReferenceDate(row) {
+    return row.published_date ?? row.effective_date ?? row.updated_at ?? row.created_at;
+}
+function computeRecencyWeight(referenceDate, nowTs) {
+    const ageDays = Math.max(0, (nowTs - parseDateOr(referenceDate, nowTs)) / (1000 * 60 * 60 * 24));
+    if (ageDays <= 30)
+        return 1;
+    if (ageDays <= 90)
+        return 0.9;
+    if (ageDays <= 180)
+        return 0.8;
+    if (ageDays <= 365)
+        return 0.65;
+    if (ageDays <= 730)
+        return 0.5;
+    return 0.35;
+}
+function computeOverallEventRisk(row) {
+    return (row.chili_score * 0.4) + (row.impact_score * 0.3) + (row.likelihood_score * 0.2) + (row.confidence_score * 0.1);
+}
+function backfillLawsFromEvents(db) {
+    const eventRows = db
+        .prepare(`
+      SELECT
+        e.id,
+        e.title,
+        e.jurisdiction_country,
+        e.jurisdiction_state,
+        e.stage,
+        e.age_bracket,
+        e.impact_score,
+        e.likelihood_score,
+        e.confidence_score,
+        e.chili_score,
+        e.summary,
+        e.source_url_link,
+        e.effective_date,
+        e.published_date,
+        e.created_at,
+        e.updated_at,
+        e.raw_text,
+        s.name AS source_name,
+        s.url AS source_url,
+        COALESCE(s.reliability_tier, 3) AS source_reliability_tier
+      FROM regulation_events e
+      JOIN sources s ON s.id = e.source_id
+      ORDER BY e.updated_at DESC, e.id ASC
+      `)
+        .all();
+    const tx = db.transaction(() => {
+        db.exec("DELETE FROM law_updates");
+        db.exec("DELETE FROM laws");
+        const nowIso = new Date().toISOString();
+        const nowTs = Date.now();
+        const groups = new Map();
+        for (const row of eventRows) {
+            const canonical = (0, law_canonical_1.inferCanonicalLaw)({
+                title: row.title,
+                summary: row.summary,
+                content: row.raw_text,
+                jurisdictionCountry: row.jurisdiction_country,
+                jurisdictionState: row.jurisdiction_state,
+            });
+            const existing = groups.get(canonical.lawKey);
+            if (existing) {
+                existing.updates.push(row);
+                if (canonical.lawName.length > existing.lawName.length) {
+                    existing.lawName = canonical.lawName;
+                }
+                if (existing.lawType === "law" && canonical.lawType && canonical.lawType !== "law") {
+                    existing.lawType = canonical.lawType;
+                }
+            }
+            else {
+                groups.set(canonical.lawKey, {
+                    lawName: canonical.lawName,
+                    lawType: canonical.lawType,
+                    jurisdictionCountry: row.jurisdiction_country,
+                    jurisdictionState: row.jurisdiction_state,
+                    updates: [row],
+                });
+            }
+        }
+        const insertLaw = db.prepare(`
+      INSERT INTO laws (
+        law_key,
+        law_name,
+        jurisdiction_country,
+        jurisdiction_state,
+        law_type,
+        stage,
+        status,
+        first_seen_at,
+        last_seen_at,
+        latest_effective_date,
+        aggregate_risk_max,
+        aggregate_risk_recent_weighted,
+        aggregate_risk_overall,
+        source_confidence,
+        created_at,
+        updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+        const insertLawUpdate = db.prepare(`
+      INSERT INTO law_updates (
+        law_id,
+        event_id,
+        source_item_id,
+        update_title,
+        update_summary,
+        source_url,
+        source_name,
+        published_date,
+        effective_date,
+        stage,
+        chili_score,
+        impact_score,
+        likelihood_score,
+        confidence_score,
+        created_at,
+        raw_metadata
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+        for (const [lawKey, group] of groups) {
+            const updatesSorted = [...group.updates].sort((a, b) => parseDateOr(pickEventReferenceDate(b), 0) - parseDateOr(pickEventReferenceDate(a), 0));
+            const latest = updatesSorted[0];
+            const firstSeen = group.updates.reduce((min, row) => {
+                const candidate = pickEventReferenceDate(row);
+                return parseDateOr(candidate, Number.MAX_SAFE_INTEGER) < parseDateOr(min, Number.MAX_SAFE_INTEGER)
+                    ? candidate
+                    : min;
+            }, pickEventReferenceDate(group.updates[0]));
+            const lastSeen = group.updates.reduce((max, row) => {
+                const candidate = row.updated_at ?? pickEventReferenceDate(row);
+                return parseDateOr(candidate, 0) > parseDateOr(max, 0) ? candidate : max;
+            }, latest.updated_at ?? pickEventReferenceDate(latest));
+            const latestEffectiveDate = group.updates
+                .map((row) => row.effective_date)
+                .filter((value) => Boolean(value))
+                .sort((a, b) => parseDateOr(b, 0) - parseDateOr(a, 0))[0] ?? null;
+            const aggregateRiskMax = Math.max(...group.updates.map((row) => row.chili_score));
+            let weightedRiskNumerator = 0;
+            let weightedRiskDenominator = 0;
+            let riskOverallSum = 0;
+            let sourceConfidenceSum = 0;
+            for (const row of group.updates) {
+                const referenceDate = pickEventReferenceDate(row);
+                const weight = computeRecencyWeight(referenceDate, nowTs);
+                weightedRiskNumerator += row.chili_score * weight;
+                weightedRiskDenominator += weight;
+                riskOverallSum += computeOverallEventRisk(row);
+                sourceConfidenceSum += row.source_reliability_tier;
+            }
+            const aggregateRiskRecentWeighted = weightedRiskDenominator > 0
+                ? weightedRiskNumerator / weightedRiskDenominator
+                : aggregateRiskMax;
+            const aggregateRiskOverall = group.updates.length > 0 ? riskOverallSum / group.updates.length : aggregateRiskMax;
+            const sourceConfidence = group.updates.length > 0 ? sourceConfidenceSum / group.updates.length : 0;
+            const lawResult = insertLaw.run(lawKey, group.lawName, group.jurisdictionCountry, group.jurisdictionState, group.lawType, latest.stage, latest.stage, firstSeen, lastSeen, latestEffectiveDate, aggregateRiskMax, aggregateRiskRecentWeighted, aggregateRiskOverall, sourceConfidence, nowIso, nowIso);
+            const lawId = Number(lawResult.lastInsertRowid);
+            for (const update of updatesSorted) {
+                insertLawUpdate.run(lawId, update.id, null, update.title, update.summary, update.source_url_link, update.source_name, update.published_date, update.effective_date, update.stage, update.chili_score, update.impact_score, update.likelihood_score, update.confidence_score, update.updated_at ?? nowIso, JSON.stringify({
+                    ageBracket: update.age_bracket,
+                    jurisdictionCountry: update.jurisdiction_country,
+                    jurisdictionState: update.jurisdiction_state,
+                    sourceReliabilityTier: update.source_reliability_tier,
+                    sourceUrl: update.source_url,
+                }));
+            }
+        }
+        return {
+            laws: groups.size,
+            lawUpdates: eventRows.length,
+            mergedDuplicates: Math.max(0, eventRows.length - groups.size),
+        };
+    });
+    return tx();
 }
 //# sourceMappingURL=db.js.map

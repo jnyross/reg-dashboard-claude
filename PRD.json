@@ -1,80 +1,43 @@
 {
   "project": {
-    "name": "Real Data Ingestion — Teen Regulation Dashboard",
-    "version": "v2",
+    "name": "Law-Centric Regulatory Dashboard Refactor",
+    "version": "v5-law-first",
     "owner": "John",
-    "primaryUsers": ["Risk Product Teams"],
-    "goal": "Extend MVP dashboard to ingest real regulatory data from live global sources, with LLM-powered analysis via MiniMax M2.5."
+    "engine": "claude",
+    "goal": "Model regulation intelligence around canonical laws with many updates, while preserving event-level provenance."
   },
-  "constraints": {
-    "runtime": "Local Mac mini",
-    "costPolicy": "MiniMax M2.5 via coding plan (free). No budget cap on coverage quality.",
-    "llmProvider": "minimax-coding-plan/MiniMax-M2.5",
-    "trigger": "On-demand (no auto-cron for MVP)",
-    "codexFlags": "-a never --sandbox danger-full-access"
-  },
-  "scope": {
-    "geography": "Global Meta operating markets (US federal + 50 states, EU/EEA, UK, Australia, Canada, major APAC, LATAM)",
-    "timeHorizon": "Last 5 years through upcoming/proposed",
-    "ageRange": {
-      "primary": "13-18",
-      "earlyTeens": "13-15",
-      "lateTeens": "16-18",
-      "note": "Some legislation treats these as distinct groups"
-    },
-    "sources": [
-      "Official regulator/government websites (tier 5)",
-      "Legal databases and industry publications (tier 4)",
-      "General news websites and online searches (tier 3)",
-      "Grok/X social signal (future, tier 2)"
+  "requirements": {
+    "dataModel": [
+      "Introduce laws table (canonical law entity)",
+      "Introduce law_updates table (timeline updates mapped to events)",
+      "Stable law_key generation with jurisdiction scope",
+      "Backfill existing regulation_events into canonical law graph",
+      "Merge duplicate laws via canonical grouping"
+    ],
+    "api": [
+      "GET /api/laws (paginated, filterable)",
+      "GET /api/laws/:lawKey (law detail + timeline)",
+      "GET /api/laws/:lawKey/updates",
+      "POST /api/laws/rebuild",
+      "GET /api/brief must return top laws"
+    ],
+    "ui": [
+      "Dashboard briefing cards must be law-first",
+      "Law detail modal shows update timeline",
+      "Support one-law-many-updates analyst workflow"
+    ],
+    "quality": [
+      "Jest tests for canonicalization + law APIs",
+      "Explicit test proving 1 law -> many updates",
+      "Build passes",
+      "Live validation on Railway endpoint"
     ]
   },
-  "comparison": {
-    "engines": ["codex", "claude", "opencode"],
-    "method": "Same feature brief, independent execution, separate directories",
-    "metric": "Output quality — most complete, production-ready result",
-    "directories": {
-      "codex": "./codex/",
-      "claude": "./claude/",
-      "opencode": "./opencode/"
-    }
-  },
-  "userStories": [
-    {
-      "id": "US-201",
-      "title": "Real source crawling",
-      "description": "Crawl 20+ real regulatory sources across jurisdictions and extract current regulation data",
-      "passes": false
-    },
-    {
-      "id": "US-202",
-      "title": "LLM analysis pipeline",
-      "description": "Use MiniMax M2.5 to score relevance, extract structured fields, generate summaries",
-      "passes": false
-    },
-    {
-      "id": "US-203",
-      "title": "Age bracket tracking",
-      "description": "Identify and display whether regulation targets 13-15, 16-18, or both",
-      "passes": false
-    },
-    {
-      "id": "US-204",
-      "title": "Dedup and status tracking",
-      "description": "Deduplicate items and track status changes over time",
-      "passes": false
-    },
-    {
-      "id": "US-205",
-      "title": "On-demand trigger",
-      "description": "CLI or API endpoint to trigger full crawl + analysis",
-      "passes": false
-    },
-    {
-      "id": "US-206",
-      "title": "Dashboard real data",
-      "description": "Dashboard shows real data with age bracket filter and source reliability",
-      "passes": false
-    }
+  "acceptanceCriteria": [
+    "Canonical law records can be rebuilt from existing events without data loss",
+    "At least one law surfaces with update_count > 1",
+    "Brief endpoint ranks law entities by risk/urgency",
+    "Event endpoints remain functional",
+    "Self-score >= 95"
   ]
 }

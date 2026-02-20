@@ -368,17 +368,18 @@ function renderBrief(items) {
     const card = document.createElement("article");
     card.className = "brief-card";
     card.innerHTML = `
-      <div class="brief-title">${item.title}</div>
+      <div class="brief-title">${item.lawName || item.title}</div>
       <div class="badges">
         <span class="badge">${item.jurisdiction.flag || "🌐"} ${item.jurisdiction.country}</span>
         <span class="badge stage-badge" style="background:${item.stageColor}">${stageLabelMap[item.stage] || item.stage}</span>
         <span class="badge" style="background:#7c3aed">${item.ageBracket}</span>
       </div>
-      <div>${chili(item.scores.chili)}</div>
+      <div>${chili(item.scores.chili)} · ${item.updateCount || 0} updates</div>
       <p>${item.summary || "No summary"}</p>
+      <small>Law key: ${item.lawKey || "n/a"}</small><br />
       <small>Updated ${formatDate(item.updatedAt)}</small>
     `;
-    card.addEventListener("click", () => showEventDetail(item.id));
+    card.addEventListener("click", () => showLawDetail(item.lawKey || item.id));
     container.appendChild(card);
   });
 }
@@ -574,6 +575,53 @@ async function deleteSavedSearch() {
   await fetchJson(`${API_BASE}/saved-searches/${id}`, { method: "DELETE" });
   showToast("Saved search deleted");
   loadSavedSearches();
+}
+
+async function showLawDetail(lawKey) {
+  const encoded = encodeURIComponent(lawKey);
+  const detail = await fetchJson(`${API_BASE}/laws/${encoded}`);
+  const dialog = document.getElementById("event-dialog");
+  const title = document.getElementById("event-dialog-title");
+  const content = document.getElementById("event-dialog-content");
+
+  title.textContent = detail.lawName;
+
+  const timelineHtml = (detail.timeline || [])
+    .slice(0, 30)
+    .map((entry) => `
+      <div class="timeline-item">
+        <div><strong>${entry.label}</strong>${entry.value ? `: ${entry.value}` : ""}</div>
+        <div class="time">${formatDate(entry.changedAt)} · ${entry.sourceName || ""}</div>
+      </div>
+    `)
+    .join("");
+
+  const updatesHtml = (detail.updates || [])
+    .slice(0, 20)
+    .map((update) => `
+      <li>
+        <strong>${update.title}</strong> (${stageLabelMap[update.stage] || update.stage})
+        · ${update.source.name || "Unknown"}
+        · ${formatDate(update.publishedDate || update.createdAt)}
+      </li>
+    `)
+    .join("") || "<li>No updates</li>";
+
+  content.innerHTML = `
+    <p><strong>Law:</strong> ${detail.lawName}</p>
+    <p><strong>Jurisdiction:</strong> ${detail.jurisdiction.flag || "🌐"} ${detail.jurisdiction.country}${detail.jurisdiction.state ? ` / ${detail.jurisdiction.state}` : ""}</p>
+    <p><strong>Status:</strong> ${stageLabelMap[detail.stage] || detail.stage} · <strong>Updates:</strong> ${detail.updateCount}</p>
+    <p><strong>Risk:</strong> ${chili(detail.scores.chili)} (max ${detail.risk.max}, recent ${detail.risk.recentWeighted})</p>
+    <p><strong>Latest summary:</strong> ${detail.summary || "No summary"}</p>
+
+    <h4>Law Update Timeline</h4>
+    <div class="timeline">${timelineHtml || "<div class='timeline-item'>No timeline entries</div>"}</div>
+
+    <h4>Recent Updates</h4>
+    <ul>${updatesHtml}</ul>
+  `;
+
+  dialog.showModal();
 }
 
 async function showEventDetail(eventId, editMode = false) {

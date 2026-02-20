@@ -14,6 +14,7 @@ import {
   startCrawlRun,
   completeCrawlRun,
   failCrawlRun,
+  backfillLawsFromEvents,
   type UpsertEventInput,
 } from "./db";
 
@@ -187,6 +188,12 @@ export async function runPipeline(
     });
 
     persistTransaction();
+
+    const lawBackfill = backfillLawsFromEvents(db);
+    options.onProgress?.(
+      "laws",
+      `Law index rebuilt: ${lawBackfill.laws} canonical laws, ${lawBackfill.lawUpdates} updates (${lawBackfill.mergedDuplicates} merged)` ,
+    );
 
     completeCrawlRun(db, runId, {
       itemsFound: crawledItems.length,

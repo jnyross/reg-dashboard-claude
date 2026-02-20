@@ -1,4 +1,4 @@
-import { openDatabase, initializeSchema, migrateSchema } from "./db";
+import { openDatabase, initializeSchema, migrateSchema, backfillLawsFromEvents } from "./db";
 import { createApp } from "./app";
 import { seedSampleData } from "./seed";
 
@@ -10,6 +10,7 @@ const db = openDatabase(databasePath);
 initializeSchema(db);
 migrateSchema(db);
 seedSampleData(db);
+backfillLawsFromEvents(db);
 
 const app = createApp(db);
 app.listen(PORT, () => {
